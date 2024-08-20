@@ -1,0 +1,17 @@
+.btn-group {
+    display: flex;
+    gap: 5px;
+    align-items: stretch;
+}
+
+    .btn-group .btn, .btn-group form {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+    }
+
+    .btn-group .btn {
+        padding: 6px 12px;
+        box-sizing: border-box;
+    }
