@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, url_for, flash, redirect, request, jsonify, Response
-from app.extensions import db
-from app.models import Utility
+from extensions import db
+from models import Utility
 from datetime import datetime
 import csv
 from io import StringIO
