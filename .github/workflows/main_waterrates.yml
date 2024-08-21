@@ -66,4 +66,4 @@ jobs:
         with:
           app-name: 'waterrates'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_28753216A5BF4472BC1B75128A5EA336 }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
