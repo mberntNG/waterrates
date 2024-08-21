@@ -1,4 +1,4 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 {% block title %}Utilities{% endblock %}
 
@@ -268,7 +268,7 @@
 
                     <!-- Block Fields: Two Columns Layout -->
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-3">
                             <div class="form-group">
                                 <label for="w_block_1_gals">Water Block 1 Gallons</label>
                                 <input type="number" class="form-control" id="modal_add_w_block_1_gals" name="w_block_1_gals">
@@ -310,48 +310,49 @@
                                 <input type="number" class="form-control" id="modal_add_w_block_10_gals" name="w_block_10_gals">
                                 <!-- Repeat similar blocks for other water and wastewater blocks (gallons) -->
                             </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="w_block_1_rate">Water Block 1 Rate</label>
-                                    <input type="number" step="0.01" class="form-control" id="modal_add_w_block_1_rate" name="w_block_1_rate">
-                                </div>
-                                <div class="form-group">
-                                    <label for="w_block_2_rate">Water Block 2 Rate</label>
-                                    <input type="number" step="0.01" class="form-control" id="modal_add_w_block_2_rate" name="w_block_2_rate">
-                                </div>
-                                <div class="form-group">
-                                    <label for="w_block_3_rate">Water Block 3 Rate</label>
-                                    <input type="number" step="0.01" class="form-control" id="modal_add_w_block_3_rate" name="w_block_3_rate">
-                                </div>
-                                <div class="form-group">
-                                    <label for="w_block_4_rate">Water Block 4 Rate</label>
-                                    <input type="number" step="0.01" class="form-control" id="modal_add_w_block_4_rate" name="w_block_4_rate">
-                                </div>
-                                <div class="form-group">
-                                    <label for="w_block_5_rate">Water Block 5 Rate</label>
-                                    <input type="number" step="0.01" class="form-control" id="modal_add_w_block_5_rate" name="w_block_5_rate">
-                                </div>
-                                <div class="form-group">
-                                    <label for="w_block_6_rate">Water Block 6 Rate</label>
-                                    <input type="number" step="0.01" class="form-control" id="modal_add_w_block_6_rate" name="w_block_6_rate">
-                                </div>
-                                <div class="form-group">
-                                    <label for="w_block_7_rate">Water Block 7 Rate</label>
-                                    <input type="number" step="0.01" class="form-control" id="modal_add_w_block_7_rate" name="w_block_7_rate">
-                                </div>
-                                <div class="form-group">
-                                    <label for="w_block_8_rate">Water Block 8 Rate</label>
-                                    <input type="number" step="0.01" class="form-control" id="modal_add_w_block_8_rate" name="w_block_8_rate">
-                                </div>
-                                <div class="form-group">
-                                    <label for="w_block_9_rate">Water Block 9 Rate</label>
-                                    <input type="number" step="0.01" class="form-control" id="modal_add_w_block_9_rate" name="w_block_9_rate">
-                                </div>
-                                <div class="form-group">
-                                    <label for="w_block_10_rate">Water Block 10 Rate</label>
-                                    <input type="number" step="0.01" class="form-control" id="modal_add_w_block_10_rate" name="w_block_10_rate">
-                                </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="w_block_1_rate">Water Block 1 Rate</label>
+                                <input type="number" step="0.01" class="form-control" id="modal_add_w_block_1_rate" name="w_block_1_rate">
                             </div>
+                            <div class="form-group">
+                                <label for="w_block_2_rate">Water Block 2 Rate</label>
+                                <input type="number" step="0.01" class="form-control" id="modal_add_w_block_2_rate" name="w_block_2_rate">
+                            </div>
+                            <div class="form-group">
+                                <label for="w_block_3_rate">Water Block 3 Rate</label>
+                                <input type="number" step="0.01" class="form-control" id="modal_add_w_block_3_rate" name="w_block_3_rate">
+                            </div>
+                            <div class="form-group">
+                                <label for="w_block_4_rate">Water Block 4 Rate</label>
+                                <input type="number" step="0.01" class="form-control" id="modal_add_w_block_4_rate" name="w_block_4_rate">
+                            </div>
+                            <div class="form-group">
+                                <label for="w_block_5_rate">Water Block 5 Rate</label>
+                                <input type="number" step="0.01" class="form-control" id="modal_add_w_block_5_rate" name="w_block_5_rate">
+                            </div>
+                            <div class="form-group">
+                                <label for="w_block_6_rate">Water Block 6 Rate</label>
+                                <input type="number" step="0.01" class="form-control" id="modal_add_w_block_6_rate" name="w_block_6_rate">
+                            </div>
+                            <div class="form-group">
+                                <label for="w_block_7_rate">Water Block 7 Rate</label>
+                                <input type="number" step="0.01" class="form-control" id="modal_add_w_block_7_rate" name="w_block_7_rate">
+                            </div>
+                            <div class="form-group">
+                                <label for="w_block_8_rate">Water Block 8 Rate</label>
+                                <input type="number" step="0.01" class="form-control" id="modal_add_w_block_8_rate" name="w_block_8_rate">
+                            </div>
+                            <div class="form-group">
+                                <label for="w_block_9_rate">Water Block 9 Rate</label>
+                                <input type="number" step="0.01" class="form-control" id="modal_add_w_block_9_rate" name="w_block_9_rate">
+                            </div>
+                            <div class="form-group">
+                                <label for="w_block_10_rate">Water Block 10 Rate</label>
+                                <input type="number" step="0.01" class="form-control" id="modal_add_w_block_10_rate" name="w_block_10_rate">
+                            </div>
+                        </div>
                             <div class="col-md-3">
                                 <div class="form-group">
                                     <label for="ww_block_1_gals">Waste Block 1 Gallons</label>
