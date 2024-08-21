@@ -17,6 +17,7 @@ dulwich==0.21.7
 fastjsonschema==2.19.1
 filelock==3.14.0
 Flask==3.0.3
+Flask-SQLAlchemy==3.0.5
 greenlet==3.0.3
 idna==3.7
 importlib_metadata==7.1.0
