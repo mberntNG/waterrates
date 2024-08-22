@@ -1,75 +1,44 @@
 ﻿{% extends "base.html" %}
-<link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-{% block title %}Utilities{% endblock %}
+
+{% block title %}
+    NewGen Water and Wastewater Rate Database
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid" style="padding: 0;">
-    <h1>Water/Wastewater Utility Rates</h1>
+<div class="container-fluid" style="padding: 0;" >
+    <h1>Water and Wastewater Rates</h1>
 
     <!-- Add Utility Button -->
     <div class="mb-3">
-        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addUtilityModal">
-            Add Utility
-        </button>
-        <a href="{{ url_for('main.export_utilities') }}" class="btn btn-secondary">Export to CSV</a>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#utilityModal">Add Utility</button>
     </div>
 
-    <!-- Responsive Table Wrapper -->
+    <!-- DataTables Table -->
     <div class="table-responsive">
-        <table id="utilityTable" class="table table-bordered table-striped" style="width: 100%;">
+        <table id="utilityTable" class="table table-bordered table-striped">
             <thead>
                 <tr>
                     <th>Actions</th>
                     <th>City</th>
                     <th>State</th>
-                    <th>Is Client</th>
+                    <th>Client</th>
                     <th>Population</th>
                     <th>Winter Avg.</th>
                     <th>Meter Size</th>
                     <th>Effective Date</th>
                     <th>Water Min Bill</th>
-                    <!-- Water Blocks -->
-                    <th>Water Block 1 Gallons</th>
-                    <th>Water Block 2 Gallons</th>
-                    <th>Water Block 3 Gallons</th>
-                    <th>Water Block 4 Gallons</th>
-                    <th>Water Block 5 Gallons</th>
-                    <th>Water Block 6 Gallons</th>
-                    <th>Water Block 7 Gallons</th>
-                    <th>Water Block 8 Gallons</th>
-                    <th>Water Block 9 Gallons</th>
-                    <th>Water Block 10 Gallons</th>
-                    <th>Water Block 1 Rates</th>
-                    <th>Water Block 2 Rates</th>
-                    <th>Water Block 3 Rates</th>
-                    <th>Water Block 4 Rates</th>
-                    <th>Water Block 5 Rates</th>
-                    <th>Water Block 6 Rates</th>
-                    <th>Water Block 7 Rates</th>
-                    <th>Water Block 8 Rates</th>
-                    <th>Water Block 9 Rates</th>
-                    <th>Water Block 10 Rates</th>
-                    <!-- Wastewater Blocks -->
-                    <th>Water Block 1 Gallons</th>
-                    <th>Water Block 2 Gallons</th>
-                    <th>Water Block 3 Gallons</th>
-                    <th>Water Block 4 Gallons</th>
-                    <th>Water Block 5 Gallons</th>
-                    <th>Water Block 6 Gallons</th>
-                    <th>Water Block 7 Gallons</th>
-                    <th>Water Block 8 Gallons</th>
-                    <th>Water Block 9 Gallons</th>
-                    <th>Water Block 10 Gallons</th>
-                    <th>Water Block 1 Rates</th>
-                    <th>Water Block 2 Rates</th>
-                    <th>Water Block 3 Rates</th>
-                    <th>Water Block 4 Rates</th>
-                    <th>Water Block 5 Rates</th>
-                    <th>Water Block 6 Rates</th>
-                    <th>Water Block 7 Rates</th>
-                    <th>Water Block 8 Rates</th>
-                    <th>Water Block 9 Rates</th>
-                    <th>Water Block 10 Rates</th>
+                    {% for i in range(1, 11) %}
+                    <th>Water Block {{ i }} Gallons</th>
+                    {% endfor %}
+                    {% for i in range(1, 11) %}
+                    <th>Water Block {{ i }} Rate</th>
+                    {% endfor %}
+                    {% for i in range(1, 11) %}
+                    <th>Wastewater Block {{ i }} Gallons</th>
+                    {% endfor %}
+                    {% for i in range(1, 11) %}
+                    <th>Wastewater Block {{ i }} Rate</th>
+                    {% endfor %}
                     <th>Source</th>
                 </tr>
             </thead>
@@ -78,40 +47,30 @@
                 <tr>
                     <td>
                         <div class="btn-group">
-                            <!-- Edit Utility Button -->
-                            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#updateUtilityModal"
-                                    data-id="{{ utility.id }}" data-city="{{ utility.city }}" data-state="{{ utility.state }}"
-                                    data-client="{{ utility.client }}" data-population="{{ utility.population }}"
-                                    data-winter_avg="{{ utility.winter_avg }}" data-meter_size="{{ utility.meter_size }}"
-                                    data-effective_date="{{ utility.effective_date.strftime('%Y-%m-%d') if utility.effective_date else '' }}"
-                                    data-source="{{ utility.source }}" data-w_min_bill="{{ utility.w_min_bill }}"
+                            <button type="button" class="btn btn-primary edit-btn"
+                                    data-id="{{ utility.id }}"
+                                    data-city="{{ utility.city }}"
+                                    data-state="{{ utility.state }}"
+                                    data-client="{{ utility.client }}"
+                                    data-population="{{ utility.population }}"
+                                    data-winter_avg="{{ utility.winter_avg }}"
+                                    data-meter_size="{{ utility.meter_size }}"
+                                    data-effective_date="{{ utility.effective_date }}"
+                                    data-source="{{ utility.source }}"
+                                    data-w_min_bill="{{ utility.w_min_bill }}"
                                     data-ww_min_bill="{{ utility.ww_min_bill }}"
-                                    data-w_block_1_gals="{{ utility.w_block_1_gals }}" data-w_block_1_rate="{{ utility.w_block_1_rate }}"
-                                    data-w_block_2_gals="{{ utility.w_block_2_gals }}" data-w_block_2_rate="{{ utility.w_block_2_rate }}"
-                                    data-w_block_3_gals="{{ utility.w_block_3_gals }}" data-w_block_3_rate="{{ utility.w_block_3_rate }}"
-                                    data-w_block_4_gals="{{ utility.w_block_4_gals }}" data-w_block_4_rate="{{ utility.w_block_4_rate }}"
-                                    data-w_block_5_gals="{{ utility.w_block_5_gals }}" data-w_block_5_rate="{{ utility.w_block_5_rate }}"
-                                    data-w_block_6_gals="{{ utility.w_block_6_gals }}" data-w_block_6_rate="{{ utility.w_block_6_rate }}"
-                                    data-w_block_7_gals="{{ utility.w_block_7_gals }}" data-w_block_7_rate="{{ utility.w_block_7_rate }}"
-                                    data-w_block_8_gals="{{ utility.w_block_8_gals }}" data-w_block_8_rate="{{ utility.w_block_8_rate }}"
-                                    data-w_block_9_gals="{{ utility.w_block_9_gals }}" data-w_block_9_rate="{{ utility.w_block_9_rate }}"
-                                    data-w_block_10_gals="{{ utility.w_block_10_gals }}" data-w_block_10_rate="{{ utility.w_block_10_rate }}"
-                                    data-ww_block_1_gals="{{ utility.ww_block_1_gals }}" data-ww_block_1_rate="{{ utility.ww_block_1_rate }}"
-                                    data-ww_block_2_gals="{{ utility.ww_block_2_gals }}" data-ww_block_2_rate="{{ utility.ww_block_2_rate }}"
-                                    data-ww_block_3_gals="{{ utility.ww_block_3_gals }}" data-ww_block_3_rate="{{ utility.ww_block_3_rate }}"
-                                    data-ww_block_4_gals="{{ utility.ww_block_4_gals }}" data-ww_block_4_rate="{{ utility.ww_block_4_rate }}"
-                                    data-ww_block_5_gals="{{ utility.ww_block_5_gals }}" data-ww_block_5_rate="{{ utility.ww_block_5_rate }}"
-                                    data-ww_block_6_gals="{{ utility.ww_block_6_gals }}" data-ww_block_6_rate="{{ utility.ww_block_6_rate }}"
-                                    data-ww_block_7_gals="{{ utility.ww_block_7_gals }}" data-ww_block_7_rate="{{ utility.ww_block_7_rate }}"
-                                    data-ww_block_8_gals="{{ utility.ww_block_8_gals }}" data-ww_block_8_rate="{{ utility.ww_block_8_rate }}"
-                                    data-ww_block_9_gals="{{ utility.ww_block_9_gals }}" data-ww_block_9_rate="{{ utility.ww_block_9_rate }}"
-                                    data-ww_block_10_gals="{{ utility.ww_block_10_gals }}" data-ww_block_10_rate="{{ utility.ww_block_10_rate }}">
+                                    {% for i in range(1, 11) %}
+                                    data-water_gallons_{{ i }}="{{ utility.water_blocks[i-1].gallons if i <= utility.water_blocks|length else '' }}"
+                                    data-water_rate_{{ i }}="{{ utility.water_blocks[i-1].rate if i <= utility.water_blocks|length else '' }}"
+                                    data-wastewater_gallons_{{ i }}="{{ utility.wastewater_blocks[i-1].gallons if i <= utility.wastewater_blocks|length else '' }}"
+                                    data-wastewater_rate_{{ i }}="{{ utility.wastewater_blocks[i-1].rate if i <= utility.wastewater_blocks|length else '' }}"
+                                    {% endfor %}
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#utilityModal">
                                 Edit
                             </button>
-
-                            <!-- Delete Utility Button -->
-                            <form action="{{ url_for('main.delete_utility', id=utility.id) }}" method="POST">
-                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this utility?');">
+                            <form action="{{ url_for('main.delete_utility', id=utility.id) }}" method="POST" style="display:inline;">
+                                <button type="submit" class="btn btn-primary btn-danger" onclick="return confirm('Are you sure you want to delete this utility?');">
                                     Delete
                                 </button>
                             </form>
@@ -120,53 +79,26 @@
                     <td>{{ utility.city }}</td>
                     <td>{{ utility.state }}</td>
                     <td>{{ utility.client }}</td>
-                    <td>{{ utility.population }}</td>
-                    <td>{{ utility.winter_avg }}</td>
-                    <td>{{ utility.meter_size }}</td>
+                    <td data-field="population">{{ utility.population or '' }}</td>
+                    <td>{{ utility.winter_avg or '' }}</td>
+                    <td>{{ utility.meter_size or '' }}</td>
                     <td>{{ utility.effective_date.strftime('%Y-%m-%d') if utility.effective_date else '' }}</td>
-                    <td>{{ "$" + "{:,.2f}".format(utility.w_min_bill) if utility.w_min_bill else '' }}</td>
-                    <!-- Water Blocks -->
-                    <td>{{ utility.w_block_1_gals }}</td>
-                    <td>{{ utility.w_block_2_gals }}</td>
-                    <td>{{ utility.w_block_3_gals }}</td>
-                    <td>{{ utility.w_block_4_gals }}</td>
-                    <td>{{ utility.w_block_5_gals }}</td>
-                    <td>{{ utility.w_block_6_gals }}</td>
-                    <td>{{ utility.w_block_7_gals }}</td>
-                    <td>{{ utility.w_block_8_gals }}</td>
-                    <td>{{ utility.w_block_9_gals }}</td>
-                    <td>{{ utility.w_block_10_gals }}</td>
-                    <td>{{ "$" + "{:,.2f}".format(utility.w_block_1_rate) if utility.w_block_1_rate else '' }}</td>
-                    <td>{{ "$" + "{:,.2f}".format(utility.w_block_2_rate) if utility.w_block_2_rate else '' }}</td>
-                    <td>{{ "$" + "{:,.2f}".format(utility.w_block_3_rate) if utility.w_block_3_rate else '' }}</td>
-                    <td>{{ "$" + "{:,.2f}".format(utility.w_block_4_rate) if utility.w_block_4_rate else '' }}</td>
-                    <td>{{ "$" + "{:,.2f}".format(utility.w_block_5_rate) if utility.w_block_5_rate else '' }}</td>
-                    <td>{{ "$" + "{:,.2f}".format(utility.w_block_6_rate) if utility.w_block_6_rate else '' }}</td>
-                    <td>{{ "$" + "{:,.2f}".format(utility.w_block_7_rate) if utility.w_block_7_rate else '' }}</td>
-                    <td>{{ "$" + "{:,.2f}".format(utility.w_block_8_rate) if utility.w_block_8_rate else '' }}</td>
-                    <td>{{ "$" + "{:,.2f}".format(utility.w_block_9_rate) if utility.w_block_9_rate else '' }}</td>
-                    <td>{{ "$" + "{:,.2f}".format(utility.w_block_10_rate) if utility.w_block_10_rate else '' }}</td>
-                    <!-- Wastewater Blocks -->
-                    <td>{{ utility.ww_block_1_gals }}</td>
-                    <td>{{ utility.ww_block_2_gals }}</td>
-                    <td>{{ utility.ww_block_3_gals }}</td>
-                    <td>{{ utility.ww_block_4_gals }}</td>
-                    <td>{{ utility.ww_block_5_gals }}</td>
-                    <td>{{ utility.ww_block_6_gals }}</td>
-                    <td>{{ utility.ww_block_7_gals }}</td>
-                    <td>{{ utility.ww_block_8_gals }}</td>
-                    <td>{{ utility.ww_block_9_gals }}</td>
-                    <td>{{ utility.ww_block_10_gals }}</td>
-                    <td>{{ "$" + "{:,.2f}".format(utility.ww_block_1_rate) if utility.ww_block_1_rate else '' }}</td>
-                    <td>{{ "$" + "{:,.2f}".format(utility.ww_block_2_rate) if utility.ww_block_2_rate else '' }}</td>
-                    <td>{{ "$" + "{:,.2f}".format(utility.ww_block_3_rate) if utility.ww_block_3_rate else '' }}</td>
-                    <td>{{ "$" + "{:,.2f}".format(utility.ww_block_4_rate) if utility.ww_block_4_rate else '' }}</td>
-                    <td>{{ "$" + "{:,.2f}".format(utility.ww_block_5_rate) if utility.ww_block_5_rate else '' }}</td>
-                    <td>{{ "$" + "{:,.2f}".format(utility.ww_block_6_rate) if utility.ww_block_6_rate else '' }}</td>
-                    <td>{{ "$" + "{:,.2f}".format(utility.ww_block_7_rate) if utility.ww_block_7_rate else '' }}</td>
-                    <td>{{ "$" + "{:,.2f}".format(utility.ww_block_8_rate) if utility.ww_block_8_rate else '' }}</td>
-                    <td>{{ "$" + "{:,.2f}".format(utility.ww_block_9_rate) if utility.ww_block_9_rate else '' }}</td>
-                    <td>{{ "$" + "{:,.2f}".format(utility.ww_block_10_rate) if utility.ww_block_10_rate else '' }}</td>
+                    <td>{{ utility.w_min_bill or '' }}</td>
+
+                    {% for i in range(1, 11) %}
+                    <td data-field="gallons_{{ i }}">{{ utility.water_blocks[i-1].gallons if i <= utility.water_blocks|length else '' }}</td>
+                    {% endfor %}
+                    {% for i in range(1, 11) %}
+                    <td data-field="rate_{{ i }}">{{ utility.water_blocks[i-1].rate if i <= utility.water_blocks|length else '' }}</td>
+                    {% endfor %}
+
+                    {% for i in range(1, 11) %}
+                    <td data-field="gallons_{{ i }}">{{ utility.wastewater_blocks[i-1].gallons if i <= utility.wastewater_blocks|length else '' }}</td>
+                    {% endfor %}
+                    {% for i in range(1, 11) %}
+                    <td data-field="rate_{{ i }}">{{ utility.wastewater_blocks[i-1].rate if i <= utility.wastewater_blocks|length else '' }}</td>
+                    {% endfor %}
+
                     <td>
                         {% if utility.source %}
                         <a href="{{ utility.source }}" target="_blank">{{ utility.source }}</a>
@@ -180,675 +112,229 @@
         </table>
     </div>
 </div>
-
-<!-- Add Utility Modal -->
-<div class="modal fade" id="addUtilityModal" tabindex="-1" aria-labelledby="addUtilityModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+<!-- Modal Form for Adding/Editing Utility -->
+<div class="modal fade" id="utilityModal" tabindex="-1" aria-labelledby="utilityModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="addUtilityModalLabel">Add Utility</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="addUtilityForm" method="POST" action="{{ url_for('main.add_utility') }}">
-                    <!-- First Row: City, State, Population -->
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="city">City</label>
-                                <input type="text" class="form-control" id="modal_add_city" name="city" required>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="state">State</label>
-                                <input type="text" class="form-control" id="modal_add_state" name="state" required>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="population">Population</label>
-                                <input type="number" class="form-control" id="modal_add_population" name="population">
-                            </div>
-                        </div>
+            <form id="utilityForm" method="POST" action="{{ url_for('main.add_utility') }}">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="utilityModalLabel">Add/Edit Utility</h5>
+                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <!-- Utility fields -->
+                    <div class="form-group">
+                        <label for="city">City</label>
+                        <input type="text" class="form-control" id="city" name="city" required>
                     </div>
-
-                    <!-- Second Row: Is Client, Meter Size, Winter Avg., Effective Date -->
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="client">Is Client</label>
-                                <select class="form-control" id="modal_add_client" name="client">
-                                    <option value="Yes">Yes</option>
-                                    <option value="No">No</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="meter_size">Meter Size</label>
-                                <input type="text" class="form-control" id="modal_add_meter_size" name="meter_size">
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="winter_avg">Winter Avg.</label>
-                                <input type="text" class="form-control" id="modal_add_winter_avg" name="winter_avg">
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="effective_date">Effective Date</label>
-                                <input type="date" class="form-control" id="modal_add_effective_date" name="effective_date">
-                            </div>
-                        </div>
+                    <div class="form-group">
+                        <label for="state">State</label>
+                        <input type="text" class="form-control" id="state" name="state" required>
                     </div>
-
-                    <!-- Third Row: Source -->
+                    <div class="form-group">
+                        <label for="client">Client</label>
+                        <select class="form-control" id="client" name="client">
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="population">Population</label>
+                        <input type="number" class="form-control" id="population" name="population">
+                    </div>
+                    <div class="form-group">
+                        <label for="winter_avg">Winter Avg</label>
+                        <select class="form-control" id="winter_avg" name="winter_avg">
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="meter_size">Meter Size</label>
+                        <input type="text" class="form-control" id="meter_size" name="meter_size">
+                    </div>
+                    <div class="form-group">
+                        <label for="effective_date">Effective Date</label>
+                        <input type="date" class="form-control" id="effective_date" name="effective_date">
+                    </div>
                     <div class="form-group">
                         <label for="source">Source</label>
-                        <input type="text" class="form-control" id="modal_add_source" name="source">
+                        <input type="text" class="form-control" id="source" name="source">
+                    </div>
+                    <div class="form-group">
+                        <label for="w_min_bill">Water Min Bill</label>
+                        <input type="number" class="form-control" id="w_min_bill" name="w_min_bill" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label for="ww_min_bill">Wastewater Min Bill</label>
+                        <input type="number" class="form-control" id="ww_min_bill" name="ww_min_bill" step="0.01">
                     </div>
 
-                    <!-- Fourth Row: Water Min Bill, Wastewater Min Bill -->
+
+                    <!-- Water Blocks -->
+                    <h5>Water Blocks</h5>
                     <div class="row">
+                        {% for i in range(1, 11) %}
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="w_min_bill">Water Min Bill</label>
-                                <input type="number" step="0.01" class="form-control" id="modal_add_w_min_bill" name="w_min_bill">
+                                <label for="water_gallons_{{ i }}">Block {{ i }} Gallons</label>
+                                <input type="number" class="form-control" id="water_gallons_{{ i }}" name="water_gallons_{{ i }}" step="0.01">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="ww_min_bill">Wastewater Min Bill</label>
-                                <input type="number" step="0.01" class="form-control" id="modal_add_ww_min_bill" name="ww_min_bill">
+                                <label for="water_rate_{{ i }}">Block {{ i }} Rate</label>
+                                <input type="number" class="form-control" id="water_rate_{{ i }}" name="water_rate_{{ i }}" step="0.01">
                             </div>
                         </div>
+                        {% endfor %}
                     </div>
 
-                    <!-- Block Fields: Two Columns Layout -->
+                    <!-- Wastewater Blocks -->
+                    <h5>Wastewater Blocks</h5>
                     <div class="row">
+                        {% for i in range(1, 11) %}
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="w_block_1_gals">Water Block 1 Gallons</label>
-                                <input type="number" class="form-control" id="modal_add_w_block_1_gals" name="w_block_1_gals">
+                                <label for="wastewater_gallons_{{ i }}">Block {{ i }} Gallons</label>
+                                <input type="number" class="form-control" id="wastewater_gallons_{{ i }}" name="wastewater_gallons_{{ i }}" step="0.01">
                             </div>
-                            <div class="form-group">
-                                <label for="w_block_2_gals">Water Block 2 Gallons</label>
-                                <input type="number" class="form-control" id="modal_add_w_block_2_gals" name="w_block_2_gals">
-                            </div>
-                            <div class="form-group">
-                                <label for="w_block_3_gals">Water Block 3 Gallons</label>
-                                <input type="number" class="form-control" id="modal_add_w_block_3_gals" name="w_block_3_gals">
-                            </div>
-                            <div class="form-group">
-                                <label for="w_block_4_gals">Water Block 4 Gallons</label>
-                                <input type="number" class="form-control" id="modal_add_w_block_4_gals" name="w_block_4_gals">
-                            </div>
-                            <div class="form-group">
-                                <label for="w_block_5_gals">Water Block 5 Gallons</label>
-                                <input type="number" class="form-control" id="modal_add_w_block_5_gals" name="w_block_5_gals">
-                            </div>
-                            <div class="form-group">
-                                <label for="w_block_6_gals">Water Block 6 Gallons</label>
-                                <input type="number" class="form-control" id="modal_add_w_block_6_gals" name="w_block_6_gals">
-                            </div>
-                            <div class="form-group">
-                                <label for="w_block_7_gals">Water Block 7 Gallons</label>
-                                <input type="number" class="form-control" id="modal_add_w_block_7_gals" name="w_block_7_gals">
-                            </div>
-                            <div class="form-group">
-                                <label for="w_block_8_gals">Water Block 8 Gallons</label>
-                                <input type="number" class="form-control" id="modal_add_w_block_8_gals" name="w_block_8_gals">
-                            </div>
-                            <div class="form-group">
-                                <label for="w_block_9_gals">Water Block 9 Gallons</label>
-                                <input type="number" class="form-control" id="modal_add_w_block_9_gals" name="w_block_9_gals">
-                            </div>
-                            <div class="form-group">
-                                <label for="w_block_10_gals">Water Block 10 Gallons</label>
-                                <input type="number" class="form-control" id="modal_add_w_block_10_gals" name="w_block_10_gals">
-                                <!-- Repeat similar blocks for other water and wastewater blocks (gallons) -->
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="w_block_1_rate">Water Block 1 Rate</label>
-                                    <input type="number" step="0.01" class="form-control" id="modal_add_w_block_1_rate" name="w_block_1_rate">
-                                </div>
-                                <div class="form-group">
-                                    <label for="w_block_2_rate">Water Block 2 Rate</label>
-                                    <input type="number" step="0.01" class="form-control" id="modal_add_w_block_2_rate" name="w_block_2_rate">
-                                </div>
-                                <div class="form-group">
-                                    <label for="w_block_3_rate">Water Block 3 Rate</label>
-                                    <input type="number" step="0.01" class="form-control" id="modal_add_w_block_3_rate" name="w_block_3_rate">
-                                </div>
-                                <div class="form-group">
-                                    <label for="w_block_4_rate">Water Block 4 Rate</label>
-                                    <input type="number" step="0.01" class="form-control" id="modal_add_w_block_4_rate" name="w_block_4_rate">
-                                </div>
-                                <div class="form-group">
-                                    <label for="w_block_5_rate">Water Block 5 Rate</label>
-                                    <input type="number" step="0.01" class="form-control" id="modal_add_w_block_5_rate" name="w_block_5_rate">
-                                </div>
-                                <div class="form-group">
-                                    <label for="w_block_6_rate">Water Block 6 Rate</label>
-                                    <input type="number" step="0.01" class="form-control" id="modal_add_w_block_6_rate" name="w_block_6_rate">
-                                </div>
-                                <div class="form-group">
-                                    <label for="w_block_7_rate">Water Block 7 Rate</label>
-                                    <input type="number" step="0.01" class="form-control" id="modal_add_w_block_7_rate" name="w_block_7_rate">
-                                </div>
-                                <div class="form-group">
-                                    <label for="w_block_8_rate">Water Block 8 Rate</label>
-                                    <input type="number" step="0.01" class="form-control" id="modal_add_w_block_8_rate" name="w_block_8_rate">
-                                </div>
-                                <div class="form-group">
-                                    <label for="w_block_9_rate">Water Block 9 Rate</label>
-                                    <input type="number" step="0.01" class="form-control" id="modal_add_w_block_9_rate" name="w_block_9_rate">
-                                </div>
-                                <div class="form-group">
-                                    <label for="w_block_10_rate">Water Block 10 Rate</label>
-                                    <input type="number" step="0.01" class="form-control" id="modal_add_w_block_10_rate" name="w_block_10_rate">
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label for="ww_block_1_gals">Waste Block 1 Gallons</label>
-                                    <input type="number" class="form-control" id="modal_add_ww_block_1_gals" name="ww_block_1_gals">
-                                </div>
-                                <div class="form-group">
-                                    <label for="ww_block_2_gals">Waste Block 2 Gallons</label>
-                                    <input type="number" class="form-control" id="modal_add_ww_block_2_gals" name="ww_block_2_gals">
-                                </div>
-                                <div class="form-group">
-                                    <label for="ww_block_3_gals">Waste Block 3 Gallons</label>
-                                    <input type="number" class="form-control" id="modal_add_ww_block_3_gals" name="ww_block_3_gals">
-                                </div>
-                                <div class="form-group">
-                                    <label for="ww_block_4_gals">Waste Block 4 Gallons</label>
-                                    <input type="number" class="form-control" id="modal_add_ww_block_4_gals" name="ww_block_4_gals">
-                                </div>
-                                <div class="form-group">
-                                    <label for="ww_block_5_gals">Waste Block 5 Gallons</label>
-                                    <input type="number" class="form-control" id="modal_add_ww_block_5_gals" name="ww_block_5_gals">
-                                </div>
-                                <div class="form-group">
-                                    <label for="ww_block_6_gals">Waste Block 6 Gallons</label>
-                                    <input type="number" class="form-control" id="modal_add_ww_block_6_gals" name="ww_block_6_gals">
-                                </div>
-                                <div class="form-group">
-                                    <label for="ww_block_7_gals">Waste Block 7 Gallons</label>
-                                    <input type="number" class="form-control" id="modal_add_ww_block_7_gals" name="ww_block_7_gals">
-                                </div>
-                                <div class="form-group">
-                                    <label for="ww_block_8_gals">Waste Block 8 Gallons</label>
-                                    <input type="number" class="form-control" id="modal_add_ww_block_8_gals" name="ww_block_8_gals">
-                                </div>
-                                <div class="form-group">
-                                    <label for="ww_block_9_gals">Waste Block 9 Gallons</label>
-                                    <input type="number" class="form-control" id="modal_add_ww_block_9_gals" name="ww_block_9_gals">
-                                </div>
-                                <div class="form-group">
-                                    <label for="ww_block_10_gals">Waste Block 10 Gallons</label>
-                                    <input type="number" class="form-control" id="modal_add_ww_block_10_gals" name="ww_block_10_gals">
-                                </div>
-                                <!-- Repeat similar blocks for other water and wastewater blocks (gallons) -->
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label for="ww_block_1_rate">Waste Block 1 Rate</label>
-                                    <input type="number" step="0.01" class="form-control" id="modal_add_ww_block_1_rate" name="ww_block_1_rate">
-                                </div>
-                                <div class="form-group">
-                                    <label for="ww_block_2_rate">Waste Block 2 Rate</label>
-                                    <input type="number" step="0.01" class="form-control" id="modal_add_ww_block_2_rate" name="ww_block_2_rate">
-                                </div>
-                                <div class="form-group">
-                                    <label for="ww_block_3_rate">Waste Block 3 Rate</label>
-                                    <input type="number" step="0.01" class="form-control" id="modal_add_ww_block_3_rate" name="ww_block_3_rate">
-                                </div>
-                                <div class="form-group">
-                                    <label for="ww_block_4_rate">Waste Block 4 Rate</label>
-                                    <input type="number" step="0.01" class="form-control" id="modal_add_ww_block_4_rate" name="ww_block_4_rate">
-                                </div>
-                                <div class="form-group">
-                                    <label for="ww_block_5_rate">Waste Block 5 Rate</label>
-                                    <input type="number" step="0.01" class="form-control" id="modal_add_ww_block_5_rate" name="ww_block_5_rate">
-                                </div>
-                                <div class="form-group">
-                                    <label for="ww_block_6_rate">Waste Block 6 Rate</label>
-                                    <input type="number" step="0.01" class="form-control" id="modal_add_ww_block_6_rate" name="ww_block_6_rate">
-                                </div>
-                                <div class="form-group">
-                                    <label for="ww_block_7_rate">Waste Block 7 Rate</label>
-                                    <input type="number" step="0.01" class="form-control" id="modal_add_ww_block_7_rate" name="ww_block_7_rate">
-                                </div>
-                                <div class="form-group">
-                                    <label for="ww_block_8_rate">Waste Block 8 Rate</label>
-                                    <input type="number" step="0.01" class="form-control" id="modal_add_ww_block_8_rate" name="ww_block_8_rate">
-                                </div>
-                                <div class="form-group">
-                                    <label for="ww_block_9_rate">Waste Block 9 Rate</label>
-                                    <input type="number" step="0.01" class="form-control" id="modal_add_ww_block_9_rate" name="ww_block_9_rate">
-                                </div>
-                                <div class="form-group">
-                                    <label for="ww_block_10_rate">Waste Block 10 Rate</label>
-                                    <input type="number" step="0.01" class="form-control" id="modal_add_ww_block_10_rate" name="ww_block_10_rate">
-                                </div>
-                            </div>
-                            <!-- Repeat similar blocks for other water and wastewater blocks (rates) -->
                         </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="wastewater_rate_{{ i }}">Block {{ i }} Rate</label>
+                                <input type="number" class="form-control" id="wastewater_rate_{{ i }}" name="wastewater_rate_{{ i }}" step="0.01">
+                            </div>
+                        </div>
+                        {% endfor %}
                     </div>
 
-                    <!-- Submit Button -->
-                    <button type="submit" class="btn btn-primary mt-3">Add Utility</button>
-                </form>
-            </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
+    {% endblock %}
 
-<!-- Update Utility Modal -->
-<!-- Modal -->
-<div class="modal fade" id="updateUtilityModal" tabindex="-1" aria-labelledby="updateUtilityModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="updateUtilityModalLabel">Update Utility</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="updateUtilityForm" method="POST" action="">
-                    <!-- First Row: City, State, Population -->
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="city">City</label>
-                                <input type="text" class="form-control" id="modal_city" name="city" required>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="state">State</label>
-                                <input type="text" class="form-control" id="modal_state" name="state" required>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="population">Population</label>
-                                <input type="number" class="form-control" id="modal_population" name="population">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Second Row: Is Client, Meter Size, Winter Avg., Effective Date -->
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="client">Is Client</label>
-                                <select class="form-control" id="modal_client" name="client">
-                                    <option value="Yes">Yes</option>
-                                    <option value="No">No</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="meter_size">Meter Size</label>
-                                <input type="text" class="form-control" id="modal_meter_size" name="meter_size">
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="winter_avg">Winter Avg.</label>
-                                <select class="form-control" id="modal_winter_avg" name="winter_avg">
-                                    <option value="Yes">Yes</option>
-                                    <option value="No">No</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="effective_date">Effective Date</label>
-                                <input type="date" class="form-control" id="modal_effective_date" name="effective_date">
-                            </div>
-                        </div>
-                    </div>
-
-
-                    <!-- Third Row: Source -->
-                    <div class="form-group">
-                        <label for="source">Source</label>
-                        <input type="text" class="form-control" id="modal_source" name="source">
-                    </div>
-
-                    <!-- Fourth Row: Water Min Bill, Wastewater Min Bill -->
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="w_min_bill">Water Min Bill</label>
-                                <input type="number" step="0.01" class="form-control" id="modal_w_min_bill" name="w_min_bill">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="ww_min_bill">Wastewater Min Bill</label>
-                                <input type="number" step="0.01" class="form-control" id="modal_ww_min_bill" name="ww_min_bill">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Block Fields: Two Columns Layout -->
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="w_block_1_gals">Water Block 1 Gallons</label>
-                                <input type="number" class="form-control" id="modal_w_block_1_gals" name="w_block_1_gals">
-                            </div>
-                            <div class="form-group">
-                                <label for="w_block_2_gals">Water Block 2 Gallons</label>
-                                <input type="number" class="form-control" id="modal_w_block_2_gals" name="w_block_2_gals">
-                            </div>
-                            <div class="form-group">
-                                <label for="w_block_3_gals">Water Block 3 Gallons</label>
-                                <input type="number" class="form-control" id="modal_w_block_3_gals" name="w_block_3_gals">
-                            </div>
-                            <div class="form-group">
-                                <label for="w_block_4_gals">Water Block 4 Gallons</label>
-                                <input type="number" class="form-control" id="modal_w_block_4_gals" name="w_block_4_gals">
-                            </div>
-                            <div class="form-group">
-                                <label for="w_block_5_gals">Water Block 5 Gallons</label>
-                                <input type="number" class="form-control" id="modal_w_block_5_gals" name="w_block_5_gals">
-                            </div>
-                            <div class="form-group">
-                                <label for="w_block_6_gals">Water Block 6 Gallons</label>
-                                <input type="number" class="form-control" id="modal_w_block_6_gals" name="w_block_6_gals">
-                            </div>
-                            <div class="form-group">
-                                <label for="w_block_7_gals">Water Block 7 Gallons</label>
-                                <input type="number" class="form-control" id="modal_w_block_7_gals" name="w_block_7_gals">
-                            </div>
-                            <div class="form-group">
-                                <label for="w_block_8_gals">Water Block 8 Gallons</label>
-                                <input type="number" class="form-control" id="modal_w_block_8_gals" name="w_block_8_gals">
-                            </div>
-                            <div class="form-group">
-                                <label for="w_block_9_gals">Water Block 9 Gallons</label>
-                                <input type="number" class="form-control" id="modal_w_block_9_gals" name="w_block_9_gals">
-                            </div>
-                            <div class="form-group">
-                                <label for="w_block_10_gals">Water Block 10 Gallons</label>
-                                <input type="number" class="form-control" id="modal_w_block_10_gals" name="w_block_10_gals">
-                            </div>
-                            <!-- Repeat similar blocks for other water and wastewater blocks (gallons) -->
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="w_block_1_rate">Water Block 1 Rate</label>
-                                <input type="number" step="0.01" class="form-control" id="modal_w_block_1_rate" name="w_block_1_rate">
-                            </div>
-                            <div class="form-group">
-                                <label for="w_block_2_rate">Water Block 2 Rate</label>
-                                <input type="number" step="0.01" class="form-control" id="modal_w_block_2_rate" name="w_block_2_rate">
-                            </div>
-                            <div class="form-group">
-                                <label for="w_block_3_rate">Water Block 3 Rate</label>
-                                <input type="number" step="0.01" class="form-control" id="modal_w_block_3_rate" name="w_block_3_rate">
-                            </div>
-                            <div class="form-group">
-                                <label for="w_block_4_rate">Water Block 4 Rate</label>
-                                <input type="number" step="0.01" class="form-control" id="modal_w_block_4_rate" name="w_block_4_rate">
-                            </div>
-                            <div class="form-group">
-                                <label for="w_block_5_rate">Water Block 5 Rate</label>
-                                <input type="number" step="0.01" class="form-control" id="modal_w_block_5_rate" name="w_block_5_rate">
-                            </div>
-                            <div class="form-group">
-                                <label for="w_block_6_rate">Water Block 6 Rate</label>
-                                <input type="number" step="0.01" class="form-control" id="modal_w_block_6_rate" name="w_block_6_rate">
-                            </div>
-                            <div class="form-group">
-                                <label for="w_block_7_rate">Water Block 7 Rate</label>
-                                <input type="number" step="0.01" class="form-control" id="modal_w_block_7_rate" name="w_block_7_rate">
-                            </div>
-                            <div class="form-group">
-                                <label for="w_block_8_rate">Water Block 8 Rate</label>
-                                <input type="number" step="0.01" class="form-control" id="modal_w_block_8_rate" name="w_block_8_rate">
-                            </div>
-                            <div class="form-group">
-                                <label for="w_block_9_rate">Water Block 9 Rate</label>
-                                <input type="number" step="0.01" class="form-control" id="modal_w_block_9_rate" name="w_block_9_rate">
-                            </div>
-                            <div class="form-group">
-                                <label for="w_block_10_rate">Water Block 10 Rate</label>
-                                <input type="number" step="0.01" class="form-control" id="modal_w_block_10_rate" name="w_block_10_rate">
-                            </div>
-                            <!-- Repeat similar blocks for other water and wastewater blocks (rates) -->
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="ww_block_1_gals">Waste Block 1 Gallons</label>
-                                <input type="number" class="form-control" id="modal_ww_block_1_gals" name="ww_block_1_gals">
-                            </div>
-                            <div class="form-group">
-                                <label for="ww_block_2_gals">Waste Block 2 Gallons</label>
-                                <input type="number" class="form-control" id="modal_ww_block_2_gals" name="ww_block_2_gals">
-                            </div>
-                            <div class="form-group">
-                                <label for="ww_block_3_gals">Waste Block 3 Gallons</label>
-                                <input type="number" class="form-control" id="modal_ww_block_3_gals" name="ww_block_3_gals">
-                            </div>
-                            <div class="form-group">
-                                <label for="ww_block_4_gals">Waste Block 4 Gallons</label>
-                                <input type="number" class="form-control" id="modal_ww_block_4_gals" name="ww_block_4_gals">
-                            </div>
-                            <div class="form-group">
-                                <label for="ww_block_5_gals">Waste Block 5 Gallons</label>
-                                <input type="number" class="form-control" id="modal_ww_block_5_gals" name="ww_block_5_gals">
-                            </div>
-                            <div class="form-group">
-                                <label for="ww_block_6_gals">Waste Block 6 Gallons</label>
-                                <input type="number" class="form-control" id="modal_ww_block_6_gals" name="ww_block_6_gals">
-                            </div>
-                            <div class="form-group">
-                                <label for="ww_block_7_gals">Waste Block 7 Gallons</label>
-                                <input type="number" class="form-control" id="modal_ww_block_7_gals" name="ww_block_7_gals">
-                            </div>
-                            <div class="form-group">
-                                <label for="ww_block_8_gals">Waste Block 8 Gallons</label>
-                                <input type="number" class="form-control" id="modal_ww_block_8_gals" name="ww_block_8_gals">
-                            </div>
-                            <div class="form-group">
-                                <label for="ww_block_9_gals">Waste Block 9 Gallons</label>
-                                <input type="number" class="form-control" id="modal_ww_block_9_gals" name="ww_block_9_gals">
-                            </div>
-                            <div class="form-group">
-                                <label for="ww_block_10_gals">Waste Block 10 Gallons</label>
-                                <input type="number" class="form-control" id="modal_ww_block_10_gals" name="ww_block_10_gals">
-                            </div>
-                            <!-- Repeat similar blocks for other water and wastewater blocks (gallons) -->
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="ww_block_1_rate">Waste Block 1 Rate</label>
-                                <input type="number" step="0.01" class="form-control" id="modal_ww_block_1_rate" name="ww_block_1_rate">
-                            </div>
-                            <div class="form-group">
-                                <label for="ww_block_2_rate">Waste Block 2 Rate</label>
-                                <input type="number" step="0.01" class="form-control" id="modal_ww_block_2_rate" name="ww_block_2_rate">
-                            </div>
-                            <div class="form-group">
-                                <label for="ww_block_3_rate">Waste Block 3 Rate</label>
-                                <input type="number" step="0.01" class="form-control" id="modal_ww_block_3_rate" name="ww_block_3_rate">
-                            </div>
-                            <div class="form-group">
-                                <label for="ww_block_4_rate">Waste Block 4 Rate</label>
-                                <input type="number" step="0.01" class="form-control" id="modal_ww_block_4_rate" name="ww_block_4_rate">
-                            </div>
-                            <div class="form-group">
-                                <label for="ww_block_5_rate">Waste Block 5 Rate</label>
-                                <input type="number" step="0.01" class="form-control" id="modal_ww_block_5_rate" name="ww_block_5_rate">
-                            </div>
-                            <div class="form-group">
-                                <label for="ww_block_6_rate">Waste Block 6 Rate</label>
-                                <input type="number" step="0.01" class="form-control" id="modal_ww_block_6_rate" name="ww_block_6_rate">
-                            </div>
-                            <div class="form-group">
-                                <label for="ww_block_7_rate">Waste Block 7 Rate</label>
-                                <input type="number" step="0.01" class="form-control" id="modal_ww_block_7_rate" name="ww_block_7_rate">
-                            </div>
-                            <div class="form-group">
-                                <label for="ww_block_8_rate">Waste Block 8 Rate</label>
-                                <input type="number" step="0.01" class="form-control" id="modal_ww_block_8_rate" name="ww_block_8_rate">
-                            </div>
-                            <div class="form-group">
-                                <label for="ww_block_9_rate">Waste Block 9 Rate</label>
-                                <input type="number" step="0.01" class="form-control" id="modal_ww_block_9_rate" name="ww_block_9_rate">
-                            </div>
-                            <div class="form-group">
-                                <label for="ww_block_10_rate">Waste Block 10 Rate</label>
-                                <input type="number" step="0.01" class="form-control" id="modal_ww_block_10_rate" name="ww_block_10_rate">
-                            </div>
-                        </div>
-
-                        <!-- Submit Button -->
-                        <button type="submit" class="btn btn-primary mt-3">Update Utility</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        var updateUtilityModal = document.getElementById('updateUtilityModal');
-        updateUtilityModal.addEventListener('show.bs.modal', function (event) {
-            var button = event.relatedTarget; // Button that triggered the modal
-
-            // Extract data from the button attributes
-            var utilityId = button.getAttribute('data-id');
-            var city = button.getAttribute('data-city');
-            var state = button.getAttribute('data-state');
-            var population = button.getAttribute('data-population');
-            var client = button.getAttribute('data-client');
-            var meter_size = button.getAttribute('data-meter_size');
-            var winter_avg = button.getAttribute('data-winter_avg');
-            var effective_date = button.getAttribute('data-effective_date');
-            var source = button.getAttribute('data-source');
-            var w_min_bill = button.getAttribute('data-w_min_bill');
-            var ww_min_bill = button.getAttribute('data-ww_min_bill');
-
-            var w_block_1_gals = button.getAttribute('data-w_block_1_gals');
-            var w_block_1_rate = button.getAttribute('data-w_block_1_rate');
-            var w_block_2_gals = button.getAttribute('data-w_block_2_gals');
-            var w_block_2_rate = button.getAttribute('data-w_block_2_rate');
-            var w_block_3_gals = button.getAttribute('data-w_block_3_gals');
-            var w_block_3_rate = button.getAttribute('data-w_block_3_rate');
-            var w_block_4_gals = button.getAttribute('data-w_block_4_gals');
-            var w_block_4_rate = button.getAttribute('data-w_block_4_rate');
-            var w_block_5_gals = button.getAttribute('data-w_block_5_gals');
-            var w_block_5_rate = button.getAttribute('data-w_block_5_rate');
-            var w_block_6_gals = button.getAttribute('data-w_block_6_gals');
-            var w_block_6_rate = button.getAttribute('data-w_block_6_rate');
-            var w_block_7_gals = button.getAttribute('data-w_block_7_gals');
-            var w_block_7_rate = button.getAttribute('data-w_block_7_rate');
-            var w_block_8_gals = button.getAttribute('data-w_block_8_gals');
-            var w_block_8_rate = button.getAttribute('data-w_block_8_rate');
-            var w_block_9_gals = button.getAttribute('data-w_block_9_gals');
-            var w_block_9_rate = button.getAttribute('data-w_block_9_rate');
-            var w_block_10_gals = button.getAttribute('data-w_block_10_gals');
-            var w_block_10_rate = button.getAttribute('data-w_block_10_rate');
-            var ww_block_1_gals = button.getAttribute('data-ww_block_1_gals');
-            var ww_block_1_rate = button.getAttribute('data-ww_block_1_rate');
-            var ww_block_2_gals = button.getAttribute('data-ww_block_2_gals');
-            var ww_block_2_rate = button.getAttribute('data-ww_block_2_rate');
-            var ww_block_3_gals = button.getAttribute('data-ww_block_3_gals');
-            var ww_block_3_rate = button.getAttribute('data-ww_block_3_rate');
-            var ww_block_4_gals = button.getAttribute('data-ww_block_4_gals');
-            var ww_block_4_rate = button.getAttribute('data-ww_block_4_rate');
-            var ww_block_5_gals = button.getAttribute('data-ww_block_5_gals');
-            var ww_block_5_rate = button.getAttribute('data-ww_block_5_rate');
-            var ww_block_6_gals = button.getAttribute('data-ww_block_6_gals');
-            var ww_block_6_rate = button.getAttribute('data-ww_block_6_rate');
-            var ww_block_7_gals = button.getAttribute('data-ww_block_7_gals');
-            var ww_block_7_rate = button.getAttribute('data-ww_block_7_rate');
-            var ww_block_8_gals = button.getAttribute('data-ww_block_8_gals');
-            var ww_block_8_rate = button.getAttribute('data-ww_block_8_rate');
-            var ww_block_9_gals = button.getAttribute('data-ww_block_9_gals');
-            var ww_block_9_rate = button.getAttribute('data-ww_block_9_rate');
-            var ww_block_10_gals = button.getAttribute('data-ww_block_10_gals');
-            var ww_block_10_rate = button.getAttribute('data-ww_block_10_rate');
-            // Add additional block attributes as needed
-
-            // Update the form action dynamically
-            var form = document.getElementById('updateUtilityForm');
-            form.action = '/update_utility/' + utilityId;
-
-            // Populate the modal form fields with the data
-            form.querySelector('#modal_city').value = city;
-            form.querySelector('#modal_state').value = state;
-            form.querySelector('#modal_population').value = population;
-            form.querySelector('#modal_client').value = client;
-            form.querySelector('#modal_meter_size').value = meter_size;
-            form.querySelector('#modal_winter_avg').value = winter_avg;
-            form.querySelector('#modal_effective_date').value = effective_date;
-            form.querySelector('#modal_source').value = source;
-            form.querySelector('#modal_w_min_bill').value = w_min_bill;
-            form.querySelector('#modal_ww_min_bill').value = ww_min_bill;
-            form.querySelector('#modal_w_block_1_gals').value = w_block_1_gals;
-            form.querySelector('#modal_w_block_1_rate').value = w_block_1_rate;
-            form.querySelector('#modal_w_block_2_gals').value = w_block_2_gals;
-            form.querySelector('#modal_w_block_2_rate').value = w_block_2_rate;
-            form.querySelector('#modal_w_block_3_gals').value = w_block_3_gals;
-            form.querySelector('#modal_w_block_3_rate').value = w_block_3_rate;
-            form.querySelector('#modal_w_block_4_gals').value = w_block_4_gals;
-            form.querySelector('#modal_w_block_4_rate').value = w_block_4_rate;
-            form.querySelector('#modal_w_block_5_gals').value = w_block_5_gals;
-            form.querySelector('#modal_w_block_5_rate').value = w_block_5_rate;
-            form.querySelector('#modal_w_block_6_gals').value = w_block_6_gals;
-            form.querySelector('#modal_w_block_6_rate').value = w_block_6_rate;
-            form.querySelector('#modal_w_block_7_gals').value = w_block_7_gals;
-            form.querySelector('#modal_w_block_7_rate').value = w_block_7_rate;
-            form.querySelector('#modal_w_block_8_gals').value = w_block_8_gals;
-            form.querySelector('#modal_w_block_8_rate').value = w_block_8_rate;
-            form.querySelector('#modal_w_block_9_gals').value = w_block_9_gals;
-            form.querySelector('#modal_w_block_9_rate').value = w_block_9_rate;
-            form.querySelector('#modal_w_block_10_gals').value = w_block_10_gals;
-            form.querySelector('#modal_w_block_10_rate').value = w_block_10_rate;
-            form.querySelector('#modal_ww_block_1_gals').value = ww_block_1_gals;
-            form.querySelector('#modal_ww_block_1_rate').value = ww_block_1_rate;
-            form.querySelector('#modal_ww_block_2_gals').value = ww_block_2_gals;
-            form.querySelector('#modal_ww_block_2_rate').value = ww_block_2_rate;
-            form.querySelector('#modal_ww_block_3_gals').value = ww_block_3_gals;
-            form.querySelector('#modal_ww_block_3_rate').value = ww_block_3_rate;
-            form.querySelector('#modal_ww_block_4_gals').value = ww_block_4_gals;
-            form.querySelector('#modal_ww_block_4_rate').value = ww_block_4_rate;
-            form.querySelector('#modal_ww_block_5_gals').value = ww_block_5_gals;
-            form.querySelector('#modal_ww_block_5_rate').value = ww_block_5_rate;
-            form.querySelector('#modal_ww_block_6_gals').value = ww_block_6_gals;
-            form.querySelector('#modal_ww_block_6_rate').value = ww_block_6_rate;
-            form.querySelector('#modal_ww_block_7_gals').value = ww_block_7_gals;
-            form.querySelector('#modal_ww_block_7_rate').value = ww_block_7_rate;
-            form.querySelector('#modal_ww_block_8_gals').value = ww_block_8_gals;
-            form.querySelector('#modal_ww_block_8_rate').value = ww_block_8_rate;
-            form.querySelector('#modal_ww_block_9_gals').value = ww_block_9_gals;
-            form.querySelector('#modal_ww_block_9_rate').value = ww_block_9_rate;
-            form.querySelector('#modal_ww_block_10_gals').value = ww_block_10_gals;
-            form.querySelector('#modal_ww_block_10_rate').value = ww_block_10_rate;
-            // Repeat for additional blocks
-        });
-    });
-</script>
+    {% block scripts %}
 <script>
     $(document).ready(function () {
+        ensureNonEmptyCells();
         $('#utilityTable').DataTable({
-            "paging": true,        // Enable pagination
-            "ordering": true,      // Enable sorting
-            "info": true,          // Show table information
-            "searching": true      // Enable searching
+            dom: 'Bfrtip',
+            buttons: [
+                'copy', 'csv', 'excel', 'pdf', 'print'
+            ]
+        });
+
+        formatPopulationAndGallons();
+        formatRates();
+    });
+
+    function ensureNonEmptyCells() {
+        $('td').each(function () {
+            if ($(this).html().trim() === '') {
+                $(this).html('');
+            }
+        });
+    }
+
+    function formatNumber(number) {
+        return new Intl.NumberFormat('en-US', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(number);
+    }
+
+    function formatCurrency(number) {
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD',
+            minimumFractionDigits: 2
+        }).format(number);
+    }
+
+    function formatPopulationAndGallons() {
+        // Format Population field
+        document.querySelectorAll('td[data-field="population"]').forEach(function (element) {
+            let number = element.textContent.trim();
+            if (number && !isNaN(number)) {
+                element.textContent = formatNumber(parseInt(number));
+            } else {
+                element.textContent = ''; // Set to blank if empty or not a number
+            }
+        });
+
+        // Format all Gallons fields
+        document.querySelectorAll('td[data-field^="gallons"]').forEach(function (element) {
+            let number = element.textContent.trim();
+            if (number && !isNaN(number)) {
+                element.textContent = formatNumber(parseInt(number));
+            } else {
+                element.textContent = ''; // Set to blank if empty or not a number
+            }
+        });
+    }
+
+    function formatRates() {
+        // Format all Rate fields
+        document.querySelectorAll('td[data-field^="rate"]').forEach(function (element) {
+            let number = element.textContent.trim();
+            if (number && !isNaN(number)) {
+                element.textContent = formatCurrency(parseFloat(number));
+            } else {
+                element.textContent = ''; // Set to blank if empty or not a number
+            }
+        });
+    }
+
+    // Populate the modal with data when editing a utility
+    $(document).ready(function () {
+        $('#utilityModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget); // Button that triggered the modal
+            var modal = $(this);
+
+            // Determine if it's an edit or add operation
+            var id = button.data('id') || '';  // If there's no ID, it's an add operation
+
+            // Update the modal's title and form action
+            modal.find('.modal-title').text(id ? 'Edit Utility' : 'Add Utility');
+
+            // Populate fields if editing, otherwise clear fields
+            modal.find('#city').val(button.data('city') || '');
+            modal.find('#state').val(button.data('state') || '');
+            modal.find('#client').val(button.data('client') || '');
+            modal.find('#population').val(button.data('population') || '');
+            modal.find('#winter_avg').val(button.data('winter_avg') || '');
+            modal.find('#meter_size').val(button.data('meter_size') || '');
+            modal.find('#effective_date').val(button.data('effective_date') || '');
+            modal.find('#source').val(button.data('source') || '');
+            modal.find('#w_min_bill').val(button.data('w_min_bill') || '');
+            modal.find('#ww_min_bill').val(button.data('ww_min_bill') || '');
+
+            // Populate blocks (clear if adding new)
+            for (var i = 1; i <= 10; i++) {
+                modal.find('#water_gallons_' + i).val(button.data('water_gallons_' + i) || '');
+                modal.find('#water_rate_' + i).val(button.data('water_rate_' + i) || '');
+                modal.find('#wastewater_gallons_' + i).val(button.data('wastewater_gallons_' + i) || '');
+                modal.find('#wastewater_rate_' + i).val(button.data('wastewater_rate_' + i) || '');
+            }
+
+            // Set the correct form action URL based on whether we are adding or editing
+            if (id) {
+                $('#utilityForm').attr('action', '/update_utility/' + id);
+            } else {
+                $('#utilityForm').attr('action', '/add_utility');
+            }
         });
     });
+
+
 </script>
-{% endblock %}
+    {% endblock %}

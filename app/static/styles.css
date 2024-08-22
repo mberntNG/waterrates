@@ -1,17 +1,137 @@
-.btn-group {
+/* General body styling */
+body {
+    background-color: #f8f9fa; /* Light background color */
+    color: #333; /* Darker text for readability */
+    font-family: 'Helvetica Neue', Arial, sans-serif; /* Clean font for all text */
+}
+
+/* Container adjustments */
+.container {
+    margin-top: 20px;
+}
+
+/* Styling the DataTable */
+table.dataTable {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+    table.dataTable thead {
+        background-color: #007bff; /* Primary color for table header */
+        color: #fff; /* White text in the header */
+    }
+
+        table.dataTable thead th {
+            padding: 10px; /* Padding inside header cells */
+        }
+
+    table.dataTable tbody td {
+        padding: 8px; /* Padding inside body cells */
+    }
+
+/* Styling for buttons within the table */
+.btn-group .btn {
+    margin-right: 5px; /* Space between buttons */
+    min-width: 75px; /* Minimum width for consistency */
+    height: 100%;
+    align-items: stretch;
+}
+
+
+/* Modal Styling */
+.modal-header {
+    background-color: #007bff; /* Primary color for modal header */
+    color: #fff; /* White text in modal header */
+}
+
+.modal-footer .btn-primary {
+    background-color: #007bff; /* Consistent primary color for modal save button */
+    border-color: #007bff;
+}
+
+/* Flash Messages */
+.alert {
+    margin-top: 15px;
+}
+
+.alert-dismissible .close {
+    position: absolute;
+    top: 0;
+    right: 10px;
+    color: #fff; /* White color for the close button */
+}
+
+/* Custom input styling */
+.form-control {
+    border-radius: 4px;
+    border: 1px solid #ced4da; /* Default Bootstrap border */
+}
+
+.form-group label {
+    font-weight: bold; /* Bold labels */
+}
+
+/* Add some space between form groups */
+.form-group {
+    margin-bottom: 15px;
+}
+
+/* Button styling */
+.btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+/* Adjust spacing in modal forms */
+.modal-body .form-group {
+    margin-bottom: 20px; /* More space between form elements */
+}
+
+/* Ensure modals are large enough */
+.modal-dialog {
+    max-width: 600px;
+}
+
+.modal-title {
+    font-size: 1.5rem;
+}
+
+/* Adjusting button size consistency */
+.btn-group .btn {
     display: flex;
     gap: 5px;
     align-items: stretch;
 }
 
-    .btn-group .btn, .btn-group form {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 100%;
+/* DataTables-specific styling for better readability */
+table.dataTable tbody tr {
+    background-color: #fff; /* White background for table rows */
+}
+
+    table.dataTable tbody tr:nth-child(even) {
+        background-color: #f2f2f2; /* Slight gray background for alternate rows */
     }
 
+/* Responsive design adjustments */
+@media (max-width: 768px) {
     .btn-group .btn {
-        padding: 6px 12px;
-        box-sizing: border-box;
+        margin-bottom: 10px;
     }
+
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    table.dataTable thead {
+        font-size: 0.9rem;
+    }
+
+    table.dataTable tbody {
+        font-size: 0.8rem;
+    }
+}
