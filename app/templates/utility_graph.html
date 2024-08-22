@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Utility Cost Graph
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Total Water Bill Analysis</h1>
+
+    <div id="graph-container">
+        {{ graph_html|safe }}
+    </div>
+
+    <form id="utilityForm" method="POST" action="{{ url_for('main.utility_graph') }}">
+        <div class="mb-3">
+            <label for="usage_amount">Enter Usage Amount (gallons):</label>
+            <input type="number" id="usage_amount" name="usage_amount" value="{{ usage_amount }}">
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </div>
+
+        <!-- Utility Table with checkboxes -->
+        <div class="table-responsive">
+            {% if table_data %}
+            <table id="utilityTable" class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>Select</th>
+                        <th>Highlight</th>
+                        <th>Utility</th>
+                        <th>Water Cost</th>
+                        <th>Wastewater Cost</th>
+                        <th>Total Cost</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for utility in table_data %}
+                    <tr>
+                        <td>
+                            <input type="checkbox" name="selected_utilities" value="{{ utility.id }}" {% if utility.id|string in selected_utilities %}checked{% endif %}>
+                        </td>
+                        <td>
+                            <input type="checkbox" name="highlight_utilities" value="{{ utility.id }}">
+                        </td>
+                        <td>{{ utility.name }}</td>
+                        <td>{{ '$%.2f' % utility.water_cost }}</td>
+                        <td>{{ '$%.2f' % utility.wastewater_cost }}</td>
+                        <td>{{ '$%.2f' % utility.total_cost }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>No utilities available.</p>
+            {% endif %}
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+
+
+<script>
+    $(document).ready(function () {
+        // Initialize DataTable
+        var table = $('#utilityTable').DataTable({
+            "paging": false,
+            "info": false,
+            "order": []
+        });
+
+        function updateGraph() {
+            var selectedUtilities = [];
+            var waterCosts = [];
+            var wastewaterCosts = [];
+            var labels = [];
+            var highlightUtilities = [];
+
+            table.$('tr').each(function () {
+                var checkbox = $(this).find('input[type="checkbox"][name="selected_utilities"]');
+                var highlightCheckbox = $(this).find('input[type="checkbox"][name="highlight_utilities"]');
+                if (checkbox.is(':checked')) {
+                    var utilityName = $(this).find('td').eq(2).text();
+                    var waterCost = parseFloat($(this).find('td').eq(3).text().replace('$', ''));
+                    var wastewaterCost = parseFloat($(this).find('td').eq(4).text().replace('$', ''));
+
+                    labels.push(utilityName);
+                    waterCosts.push(waterCost);
+                    wastewaterCosts.push(wastewaterCost);
+                    highlightUtilities.push(highlightCheckbox.is(':checked'));
+
+                    if (highlightCheckbox.is(':checked')) {
+                        $(this).css('background-color', '#ffeb3b');
+                    } else {
+                        $(this).css('background-color', '');
+                    }
+                }
+            });
+
+            var data = [
+                {
+                    x: labels,
+                    y: waterCosts,
+                    name: 'Water Cost',
+                    type: 'bar',
+                    marker: {
+                        color: highlightUtilities.map(h => h ? '#007bff' : '#66b2ff')
+                    },
+                    text: waterCosts.map(cost => `$${cost.toFixed(2)}`),
+                    textposition: 'auto'
+                },
+                {
+                    x: labels,
+                    y: wastewaterCosts,
+                    name: 'Wastewater Cost',
+                    type: 'bar',
+                    marker: {
+                        color: highlightUtilities.map(h => h ? '#28a745' : '#85e085')
+                    },
+                    text: wastewaterCosts.map(cost => `$${cost.toFixed(2)}`),
+                    textposition: 'auto'
+                }
+            ];
+
+            var layout = {
+                barmode: 'stack',
+                title: 'Utility Cost Comparison',
+                yaxis: {
+                    title: 'Cost ($)'
+                }
+            };
+
+            Plotly.react('graph-container', data, layout);
+        }
+
+        // Trigger update on form submit
+        $('#utilityForm').on('submit', function (event) {
+            event.preventDefault();
+            updateGraph(); // Ensure this updates the graph correctly
+        });
+
+        table.on('order.dt', function () {
+            updateGraph();
+        });
+
+        $(document).on('change', 'input[name="highlight_utilities"], input[name="selected_utilities"]', function () {
+            updateGraph();
+        });
+
+        updateGraph(); // Initialize the graph
+    });
+
+
+</script>
+{% endblock %}

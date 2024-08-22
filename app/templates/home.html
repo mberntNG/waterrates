@@ -27,6 +27,7 @@
                     <th>Meter Size</th>
                     <th>Effective Date</th>
                     <th>Water Min Bill</th>
+                    <th>Wastewater Min Bill</th>
                     {% for i in range(1, 11) %}
                     <th>Water Block {{ i }} Gallons</th>
                     {% endfor %}
@@ -84,6 +85,7 @@
                     <td>{{ utility.meter_size or '' }}</td>
                     <td>{{ utility.effective_date.strftime('%Y-%m-%d') if utility.effective_date else '' }}</td>
                     <td>{{ utility.w_min_bill or '' }}</td>
+                    <td>{{ utility.ww_min_bill or '' }}</td>
 
                     {% for i in range(1, 11) %}
                     <td data-field="gallons_{{ i }}">{{ utility.water_blocks[i-1].gallons if i <= utility.water_blocks|length else '' }}</td>

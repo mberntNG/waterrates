@@ -1,7 +1,11 @@
+import plotly.graph_objs as go
+import plotly.io as pio
 from flask import Blueprint, render_template, request, redirect, url_for, flash
+from markupsafe import Markup
 from .extensions import db
 from .models import Utility, Block
 from datetime import datetime
+
 
 # Define the blueprint
 main = Blueprint('main', __name__)
@@ -171,3 +175,91 @@ def export_utilities():
     utilities = Utility.query.all()
     # Implement export logic here, e.g., generating a CSV file
     return "Export functionality not implemented yet."
+
+@main.route('/utility_graph', methods=['GET', 'POST'])
+def utility_graph():
+    usage_amount = int(request.form.get('usage_amount', 2500))  # Default usage amount to 2500 gallons
+
+    # Get selected utilities or default to all if none are selected
+    selected_utilities = request.form.getlist('selected_utilities')
+    if not selected_utilities:
+        selected_utilities = [str(utility.id) for utility in Utility.query.all()]
+
+    utilities = Utility.query.all()
+    utility_names = []
+    water_costs = []
+    wastewater_costs = []
+    total_costs = []
+    table_data = []
+
+    for utility in utilities:
+        # Calculate water cost
+        water_total_cost = 0
+        remaining_usage = usage_amount
+
+        for block in utility.water_blocks:
+            if remaining_usage > 0:
+                block_usage = min(remaining_usage, block.gallons)
+                water_total_cost += block_usage / 1000 * block.rate
+                remaining_usage -= block_usage
+            else:
+                break
+
+        # Apply minimum water bill
+        water_total_cost = water_total_cost + utility.w_min_bill
+
+        # Calculate wastewater cost
+        wastewater_total_cost = 0
+        remaining_usage = usage_amount
+
+        for block in utility.wastewater_blocks:
+            if remaining_usage > 0:
+                block_usage = min(remaining_usage, block.gallons)
+                wastewater_total_cost += block_usage / 1000 * block.rate
+                remaining_usage -= block_usage
+            else:
+                break
+
+        # Apply minimum wastewater bill
+        wastewater_total_cost = wastewater_total_cost + utility.ww_min_bill
+
+        # Total cost
+        total_cost = water_total_cost + wastewater_total_cost
+
+        # Store data for the table
+        table_data.append({
+            'name': utility.city,
+            'water_cost': water_total_cost,
+            'wastewater_cost': wastewater_total_cost,
+            'total_cost': total_cost,
+            'id': utility.id
+        })
+
+        # Only include selected utilities in the graph
+        if str(utility.id) in selected_utilities:
+            utility_names.append(utility.city)
+            water_costs.append(water_total_cost)
+            wastewater_costs.append(wastewater_total_cost)
+            total_costs.append(total_cost)
+
+    # Create the stacked bar chart using Plotly
+    fig = go.Figure(data=[
+        go.Bar(name='Water', x=utility_names, y=water_costs, marker_color='blue'),
+        go.Bar(name='Wastewater', x=utility_names, y=wastewater_costs, marker_color='green')
+    ])
+
+    fig.update_layout(
+        title=f'Total Water and Wastewater Costs by Utility for {usage_amount} Gallons',
+        xaxis_title='Utility',
+        yaxis_title='Total Cost (USD)',
+        barmode='stack'
+    )
+
+    # Generate the HTML for the plot
+    graph_html = pio.to_html(fig, full_html=False)
+
+    # Pass the graph HTML, table data, selected utilities, and usage amount to the template
+    return render_template('utility_graph.html', graph_html=Markup(graph_html), usage_amount=usage_amount, table_data=table_data, selected_utilities=selected_utilities)
+
+
+
