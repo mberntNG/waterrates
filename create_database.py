@@ -1,5 +1,5 @@
 from app import create_app, db
-from app.models import Utility, Block
+from app.models import Entity, Rate, Block
 
 def create_db():
     app = create_app()

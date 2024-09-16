@@ -1,59 +1,68 @@
 {% extends "base.html" %}
 
 {% block title %}
-    Utility Cost Graph
+    Entity Cost Graph
 {% endblock %}
 
 {% block content %}
 <div class="container">
-    <h1>Total Water Bill Analysis</h1>
+    <h1>Residential Total Water and Wastewater Bill Analysis</h1>
 
     <div id="graph-container">
         {{ graph_html|safe }}
     </div>
 
-    <form id="utilityForm" method="POST" action="{{ url_for('main.utility_graph') }}">
+    <form id="entityForm" method="POST" action="{{ url_for('main.utility_graph') }}">
         <div class="mb-3">
             <label for="usage_amount">Enter Usage Amount (gallons):</label>
             <input type="number" id="usage_amount" name="usage_amount" value="{{ usage_amount }}">
             <button type="submit" class="btn btn-primary">Submit</button>
         </div>
 
-        <!-- Utility Table with checkboxes -->
+
+
+        <!-- Entity Table with checkboxes -->
         <div class="table-responsive">
             {% if table_data %}
-            <table id="utilityTable" class="table table-bordered table-striped">
+            <table id="entityTable" class="table table-bordered table-striped">
                 <thead>
                     <tr>
                         <th>Show on Graph</th>
                         <th>Highlight</th>
-                        <th>Utility</th>
+                        <th>Entity Name</th>
+                        <th>State</th>
+                        <th>Distance (Miles)</th>
+                        <th>Population</th>
                         <th>Water Cost</th>
                         <th>Wastewater Cost</th>
                         <th>Total Cost</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for utility in table_data %}
+                    {% for entity in table_data %}
                     <tr>
                         <td>
-                            <input type="checkbox" name="selected_utilities" value="{{ utility.id }}" {% if utility.id|string in selected_utilities %}checked{% endif %}>
+                            <input type="checkbox" name="selected_rates" value="{{ entity.id }}" {% if entity.id|string in selected_rates %}checked{% endif %}>
                         </td>
                         <td>
-                            <input type="checkbox" name="highlight_utilities" value="{{ utility.id }}">
+                            <input type="checkbox" name="highlight_utilities" value="{{ entity.id }}">
                         </td>
-                        <td>{{ utility.name }}</td>
-                        <td>{{ '$%.2f' % utility.water_cost }}</td>
-                        <td>{{ '$%.2f' % utility.wastewater_cost }}</td>
-                        <td>{{ '$%.2f' % utility.total_cost }}</td>
+                        <td>{{ entity.name }}</td>
+                        <td>{{ entity.state }}</td>
+                        <td class="distance">{{ '%.2f' % entity.distance if entity.distance != 'N/A' else 'N/A' }}</td>
+                        <td>{{  entity.population or 'N/A' }}</td>
+                        <td>{{ '$%.2f' % entity.water_cost }}</td>
+                        <td>{{ '$%.2f' % entity.wastewater_cost }}</td>
+                        <td>{{ '$%.2f' % entity.total_cost }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
             {% else %}
-            <p>No utilities available.</p>
+            <p>No entities available.</p>
             {% endif %}
         </div>
+
     </form>
 </div>
 {% endblock %}
@@ -150,8 +159,5 @@
 
         updateGraph(); // Initialize the graph
     });
-
-
-
 </script>
 {% endblock %}

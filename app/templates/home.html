@@ -5,214 +5,285 @@
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid" style="padding: 0;" >
-    <h1>Water and Wastewater Rates</h1>
-
-    <!-- Add Utility Button -->
-    <div class="mb-3">
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#utilityModal">Add Utility</button>
+<div class="container-fluid" style="padding: 0;">
+    <div class="row align-items-start mb-3">
+        <!-- Add Entity/Export Rates Buttons -->
+        <div class="col-md-2 text-end">
+            <button type="button" class="btn btn-primary add-entity-btn" data-bs-toggle="modal" data-bs-target="#entityModal">Add Entity</button>
+        </div>
+        <div class="col-md-2">
+            <button id="export-btn" class="btn btn-success add-entity-btn">Export Selected Rates</button>
+        </div>
+        <!-- Show Units Dropdown -->
+        <div class="col-md-2">
+            <label for="unit-select">Show units in:</label>
+            <select name="unit_select" id="unit-select" class="form-control">
+                <option value="default">Default Unit</option>
+                <option value="kgal">kGal</option>
+                <option value="ccf">CCF</option>
+            </select>
+        </div>
+        <!-- Entity Selection Dropdown -->
+        <div class="col-md-4">
+            <form method="get" action="{{ url_for('main.home') }}">
+                <label for="selected_entity">Show distance from:</label>
+                <select name="selected_entity" id="entity-select" class="form-control" onchange="this.form.submit()">
+                    <option value="">Select an Entity</option>
+                    {% for entity in entities %}
+                    <option value="{{ entity.id }}" {% if selected_entity and selected_entity.id==entity.id %}selected{% endif %}>
+                        {{ entity.entity_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
     </div>
 
     <!-- DataTables Table -->
     <div class="table-responsive">
-        <table id="utilityTable" class="table table-bordered table-striped">
+        <table id="entityTable" class="table table-bordered table-striped">
             <thead>
                 <tr>
+                    <th>Export</th>
                     <th>Actions</th>
-                    <th>City</th>
+                    <th>Entity</th>
                     <th>State</th>
-                    <th>Client</th>
                     <th>Population</th>
-                    <th>Winter Avg.</th>
+                    <th>Distance from Selected (mi)</th>
+                    <th>Rate Type</th>
+                    <th>Rate Class</th>
                     <th>Meter Size</th>
+                    <th>Winter Avg.</th>
                     <th>Effective Date</th>
-                    <th>Water Min Bill</th>
-                    <th>Wastewater Min Bill</th>
+                    <th>Minimum Bill</th>
+                    <th>Units</th>
                     {% for i in range(1, 11) %}
-                    <th>Water Block {{ i }} Gallons</th>
+                    <th>Block {{ i }} Volume</th>
                     {% endfor %}
                     {% for i in range(1, 11) %}
-                    <th>Water Block {{ i }} Rate</th>
+                    <th>Block {{ i }} Rate</th>
                     {% endfor %}
-                    {% for i in range(1, 11) %}
-                    <th>Wastewater Block {{ i }} Gallons</th>
-                    {% endfor %}
-                    {% for i in range(1, 11) %}
-                    <th>Wastewater Block {{ i }} Rate</th>
-                    {% endfor %}
+                    <th>Other Volumetric Rates</th>
                     <th>Source</th>
+                    <th>Updated By</th>
+                    <th>Updated On</th>
+                    <th>Checked By</th>
+                    <th>Checked On</th>
+                    <th>Notes</th>
                 </tr>
             </thead>
             <tbody>
-                {% for utility in utilities %}
+                {% for rate in rates %}
                 <tr>
+                    <td><input type="checkbox" class="rate-checkbox" value="{{ rate.id }}"></td>
                     <td>
                         <div class="btn-group">
                             <button type="button" class="btn btn-primary edit-btn"
-                                    data-id="{{ utility.id }}"
-                                    data-city="{{ utility.city }}"
-                                    data-state="{{ utility.state }}"
-                                    data-client="{{ utility.client }}"
-                                    data-population="{{ utility.population }}"
-                                    data-winter_avg="{{ utility.winter_avg }}"
-                                    data-meter_size="{{ utility.meter_size }}"
-                                    data-effective_date="{{ utility.effective_date }}"
-                                    data-source="{{ utility.source }}"
-                                    data-w_min_bill="{{ utility.w_min_bill }}"
-                                    data-ww_min_bill="{{ utility.ww_min_bill }}"
+                                    data-id="{{ rate.id }}"
+                                    data-entity="{{ rate.entity.entity_name }}"
+                                    data-state="{{ rate.entity.state }}"
+                                    data-population="{{ rate.entity.population }}"
+                                    data-latitude="{{ rate.entity.latitude }}"
+                                    data-longitude="{{ rate.entity.longitude }}"
+                                    data-type="{{ rate.rate_type }}"
+                                    data-class="{{ rate.rate_class }}"
+                                    data-meter_size="{{ rate.meter_size }}"
+                                    data-winter_avg="{{ rate.winter_avg }}"
+                                    data-effective_date="{{ rate.effective_date }}"
+                                    data-min_bill="{{ rate.min_bill }}"
+                                    data-units="{{ rate.units }}"
+                                    data-source="{{ rate.source }}"
                                     {% for i in range(1, 11) %}
-                                    data-water_gallons_{{ i }}="{{ utility.water_blocks[i-1].gallons if i <= utility.water_blocks|length else '' }}"
-                                    data-water_rate_{{ i }}="{{ utility.water_blocks[i-1].rate if i <= utility.water_blocks|length else '' }}"
-                                    data-wastewater_gallons_{{ i }}="{{ utility.wastewater_blocks[i-1].gallons if i <= utility.wastewater_blocks|length else '' }}"
-                                    data-wastewater_rate_{{ i }}="{{ utility.wastewater_blocks[i-1].rate if i <= utility.wastewater_blocks|length else '' }}"
+                                    data-volume_{{ i }}="{{ rate.blocks[i-1].volume if i <= rate.blocks|length else '' }}"
                                     {% endfor %}
+                                    {% for i in range(1, 11) %}
+                                    data-rate_{{ i }}="{{ rate.blocks[i-1].block_rate if i <= rate.blocks|length else '' }}"
+                                    {% endfor %}
+                                    data-other_vol_rates="{{ rate.other_vol_rates }}"
+                                    data-updated_by="{{ rate.updated_by }}"
+                                    data-updated_on="{{ rate.updated_on }}"
+                                    data-checked_by="{{ rate.checked_by }}"
+                                    data-checked_on="{{ rate.checked_on }}"
+                                    data-notes="{{ rate.notes }}"
                                     data-bs-toggle="modal"
-                                    data-bs-target="#utilityModal">
+                                    data-bs-target="#entityModal">
                                 Edit
                             </button>
-                            <form action="{{ url_for('main.delete_utility', id=utility.id) }}" method="POST" style="display:inline;">
-                                <button type="submit" class="btn btn-primary btn-danger" onclick="return confirm('Are you sure you want to delete this utility?');">
+                            <form action="{{ url_for('main.delete_rate', id=rate.id) }}" method="POST" style="display:inline;">
+                                <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this water rate?');">
                                     Delete
                                 </button>
                             </form>
                         </div>
                     </td>
-                    <td>{{ utility.city }}</td>
-                    <td>{{ utility.state }}</td>
-                    <td>{{ utility.client }}</td>
-                    <td data-field="population">{{ utility.population or '' }}</td>
-                    <td>{{ utility.winter_avg or '' }}</td>
-                    <td>{{ utility.meter_size or '' }}</td>
-                    <td>{{ utility.effective_date.strftime('%Y-%m-%d') if utility.effective_date else '' }}</td>
-                    <td>{{ utility.w_min_bill or '' }}</td>
-                    <td>{{ utility.ww_min_bill or '' }}</td>
-
+                    <td>{{ rate.entity.entity_name }}</td>
+                    <td>{{ rate.entity.state }}</td>
+                    <td data-field="population">{{ rate.entity.population or '' }}</td>
+                    <td>{{ distances.get(rate.entity.id, 'N/A') }}</td>
+                    <td>{{ rate.rate_type }}</td>
+                    <td>{{ rate.rate_class }}</td>
+                    <td>{{ rate.meter_size }}</td>
+                    <td>{{ rate.winter_avg }}</td>
+                    <td>{{ rate.effective_date }}</td>
+                    <td data-field="min_bill">{{ rate.min_bill }}</td>
+                    <td data-field="units" data-original="{{ rate.units }}">{{ rate.units }}</td>
                     {% for i in range(1, 11) %}
-                    <td data-field="gallons_{{ i }}">{{ utility.water_blocks[i-1].gallons if i <= utility.water_blocks|length else '' }}</td>
-                    {% endfor %}
-                    {% for i in range(1, 11) %}
-                    <td data-field="rate_{{ i }}">{{ utility.water_blocks[i-1].rate if i <= utility.water_blocks|length else '' }}</td>
-                    {% endfor %}
-
-                    {% for i in range(1, 11) %}
-                    <td data-field="gallons_{{ i }}">{{ utility.wastewater_blocks[i-1].gallons if i <= utility.wastewater_blocks|length else '' }}</td>
-                    {% endfor %}
-                    {% for i in range(1, 11) %}
-                    <td data-field="rate_{{ i }}">{{ utility.wastewater_blocks[i-1].rate if i <= utility.wastewater_blocks|length else '' }}</td>
-                    {% endfor %}
-
-                    <td>
-                        {% if utility.source %}
-                        <a href="{{ utility.source }}" target="_blank">{{ utility.source }}</a>
-                        {% else %}
-                        N/A
-                        {% endif %}
+                    <td data-field="volume_{{ i }}" data-unit="{{ rate.units }}" data-original="{{ rate.blocks[i-1].volume if i <= rate.blocks|length else '' }}">
+                        {{ rate.blocks[i-1].volume if i <= rate.blocks|length else '' }}
                     </td>
+                    {% endfor %}
+                    {% for i in range(1, 11) %}
+                    <td data-field="rate_{{ i }}" data-unit="{{ rate.units }}" data-original="{{ rate.blocks[i-1].block_rate if i <= rate.blocks|length else '' }}">
+                        {{ rate.blocks[i-1].block_rate if i <= rate.blocks|length else '' }}
+                    </td>
+                    {% endfor %}
+                    <td data-field="other_vol_rates">{{ rate.other_vol_rates or 'N/A' }}</td>
+                    <td><a href="{{ rate.source }}" target="_blank">{{ rate.source }}</a></td>
+                    <td>{{ rate.updated_by }}</td>
+                    <td>{{ rate.updated_on }}</td>
+                    <td>{{ rate.checked_by }}</td>
+                    <td>{{ rate.checked_on }}</td>
+                    <td>{{ rate.notes }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
 </div>
-<!-- Modal Form for Adding/Editing Utility -->
-<div class="modal fade" id="utilityModal" tabindex="-1" aria-labelledby="utilityModalLabel" aria-hidden="true">
+
+<!-- Modal Form for Adding/Editing Entity -->
+<div class="modal fade" id="entityModal" tabindex="-1" aria-labelledby="entityModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form id="utilityForm" method="POST" action="{{ url_for('main.add_utility') }}">
+            <form id="entityForm" method="POST" action="{{ url_for('main.add_entity') }}">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="utilityModalLabel">Add/Edit Utility</h5>
+                    <h5 class="modal-title" id="entityModalLabel">Add/Edit Entity</h5>
                     <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
-                    <!-- Utility fields -->
-                    <div class="form-group">
-                        <label for="city">City</label>
-                        <input type="text" class="form-control" id="city" name="city" required>
+                    <!-- First row with Entity, State, Population -->
+                    <div class="row">
+                        <div class="col-md-4 form-group">
+                            <label for="entity">Entity</label>
+                            <input type="text" class="form-control" id="entity_name" name="entity_name" required>
+                        </div>
+                        <div class="col-md-4 form-group">
+                            <label for="state">State</label>
+                            <input type="text" class="form-control" id="state" name="state" required>
+                        </div>
+                        <div class="col-md-4 form-group">
+                            <label for="population">Population</label>
+                            <input type="number" class="form-control" id="population" name="population">
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="state">State</label>
-                        <input type="text" class="form-control" id="state" name="state" required>
+                    <div class="row">
+                        <div class="col-md-6 form-group">
+                            <label for="latitude">Latitude</label>
+                            <input type="number" class="form-control" id="latitude" name="latitude" step="0.0000000001">
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label for="longitude">Longitude</label>
+                            <input type="number" class="form-control" id="longitude" name="longitude" step="0.0000000001">
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="client">Client</label>
-                        <select class="form-control" id="client" name="client">
-                            <option value="Yes">Yes</option>
-                            <option value="No">No</option>
-                        </select>
+                    <!-- Second row with Rate Class, Winter Avg, Meter Size -->
+                    <div class="row">
+                        <div class="col-md-3 form-group">
+                            <label for="rate_type">Rate Type</label>
+                            <select class="form-control" id="rate_type" name="rate_type">
+                                <option value="Water">Water</option>
+                                <option value="Wastewater">Wastewater</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 form-group">
+                            <label for="rate_class">Rate Class</label>
+                            <input type="text" class="form-control" id="rate_class" name="rate_class" required>
+                        </div>
+                        <div class="col-md-3 form-group">
+                            <label for="meter_size">Meter Size</label>
+                            <input type="text" class="form-control" id="meter_size" name="meter_size">
+                        </div>
+                        <div class="col-md-2 form-group">
+                            <label for="units">Units</label>
+                            <select class="form-control" id="units" name="units">
+                                <option value="kGal">kGal</option>
+                                <option value="CCF">CCF</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="population">Population</label>
-                        <input type="number" class="form-control" id="population" name="population">
+                    <div class="row">
+                        <div class="col-md-4 form-group">
+                            <label for="effective_date">Effective Date</label>
+                            <input type="date" class="form-control" id="effective_date" name="effective_date">
+                        </div>
+                        <div class="col-md-8 form-group">
+                            <label for="source">Source</label>
+                            <input type="text" class="form-control" id="source" name="source">
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="winter_avg">Winter Avg</label>
-                        <select class="form-control" id="winter_avg" name="winter_avg">
-                            <option value="Yes">Yes</option>
-                            <option value="No">No</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="meter_size">Meter Size</label>
-                        <input type="text" class="form-control" id="meter_size" name="meter_size">
-                    </div>
-                    <div class="form-group">
-                        <label for="effective_date">Effective Date</label>
-                        <input type="date" class="form-control" id="effective_date" name="effective_date">
-                    </div>
-                    <div class="form-group">
-                        <label for="source">Source</label>
-                        <input type="text" class="form-control" id="source" name="source">
-                    </div>
-                    <div class="form-group">
-                        <label for="w_min_bill">Water Min Bill</label>
-                        <input type="number" class="form-control" id="w_min_bill" name="w_min_bill" step="0.01">
-                    </div>
-                    <div class="form-group">
-                        <label for="ww_min_bill">Wastewater Min Bill</label>
-                        <input type="number" class="form-control" id="ww_min_bill" name="ww_min_bill" step="0.01">
+                    <div class="row">
+                        <div class="col-md-4 form-group">
+                            <label for="min_bill">Min Bill ($/Month)</label>
+                            <input type="number" class="form-control" id="min_bill" name="min_bill" step="0.01">
+                        </div>
+                        <div class="col-md-4 form-group">
+                            <label for="other_vol_rates">Other Vol. Rates</label>
+                            <input type="number" class="form-control" id="other_vol_rates" name="other_vol_rates" step="0.01">
+                        </div>
+                        <div class="col-md-4 form-group">
+                            <label for="winter_avg">Winter Avg</label>
+                            <select class="form-control" id="winter_avg" name="winter_avg">
+                                <option value="Yes">Yes</option>
+                                <option value="No">No</option>
+                            </select>
+                        </div>
                     </div>
 
 
-                    <!-- Water Blocks -->
-                    <h5>Water Blocks</h5>
+                    <!-- Blocks -->
+                    <h5>Blocks</h5>
                     <div class="row">
                         {% for i in range(1, 11) %}
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="water_gallons_{{ i }}">Block {{ i }} Gallons</label>
-                                <input type="number" class="form-control" id="water_gallons_{{ i }}" name="water_gallons_{{ i }}" step="0.01">
+                                <label for="volume_{{ i }}">Block {{ i }} Volume</label>
+                                <input type="number" class="form-control" id="volume_{{ i }}" name="volume_{{ i }}" step="0.01">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="water_rate_{{ i }}">Block {{ i }} Rate</label>
-                                <input type="number" class="form-control" id="water_rate_{{ i }}" name="water_rate_{{ i }}" step="0.01">
+                                <label for="block_rate_{{ i }}">Block {{ i }} Rate</label>
+                                <input type="number" class="form-control" id="block_rate_{{ i }}" name="block_rate_{{ i }}" step="0.01">
                             </div>
                         </div>
                         {% endfor %}
                     </div>
-
-                    <!-- Wastewater Blocks -->
-                    <h5>Wastewater Blocks</h5>
                     <div class="row">
-                        {% for i in range(1, 11) %}
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="wastewater_gallons_{{ i }}">Block {{ i }} Gallons</label>
-                                <input type="number" class="form-control" id="wastewater_gallons_{{ i }}" name="wastewater_gallons_{{ i }}" step="0.01">
-                            </div>
+                        <div class="col-md-6 form-group">
+                            <label for="updated_by">Updated By</label>
+                            <input type="text" class="form-control" id="updated_by" name="updated_by">
                         </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="wastewater_rate_{{ i }}">Block {{ i }} Rate</label>
-                                <input type="number" class="form-control" id="wastewater_rate_{{ i }}" name="wastewater_rate_{{ i }}" step="0.01">
-                            </div>
+                        <div class="col-md-6 form-group">
+                            <label for="updated_on">Updated On</label>
+                            <input type="date" class="form-control" id="updated_on" name="updated_on">
                         </div>
-                        {% endfor %}
                     </div>
-
+                    <div class="row">
+                        <div class="col-md-6 form-group">
+                            <label for="checked_by">Checked By</label>
+                            <input type="text" class="form-control" id="checked_by" name="checked_by">
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label for="checked_on">Checked On</label>
+                            <input type="date" class="form-control" id="checked_on" name="checked_on">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="notes">Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -222,9 +293,11 @@
         </div>
     </div>
 </div>
-    {% endblock %}
 
-    {% block scripts %}
+
+{% endblock %}
+
+{% block scripts %}
 <script>
     $(document).ready(function () {
         ensureNonEmptyCells();
@@ -235,7 +308,7 @@
             ]
         });
 
-        formatPopulationAndGallons();
+        formatPopulationAndVolume();
         formatRates();
     });
 
@@ -262,7 +335,7 @@
         }).format(number);
     }
 
-    function formatPopulationAndGallons() {
+    function formatPopulationAndVolume() {
         // Format Population field
         document.querySelectorAll('td[data-field="population"]').forEach(function (element) {
             let number = element.textContent.trim();
@@ -273,8 +346,8 @@
             }
         });
 
-        // Format all Gallons fields
-        document.querySelectorAll('td[data-field^="gallons"]').forEach(function (element) {
+        // Format all volume fields
+        document.querySelectorAll('td[data-field^="vol"]').forEach(function (element) {
             let number = element.textContent.trim();
             if (number && !isNaN(number)) {
                 element.textContent = formatNumber(parseInt(number));
@@ -286,7 +359,7 @@
 
     function formatRates() {
         // Format all Rate fields
-        document.querySelectorAll('td[data-field^="rate"]').forEach(function (element) {
+        document.querySelectorAll('td[data-field^="rate"], td[data-field="min_bill"],  td[data-field="other_vol_rates"]').forEach(function (element) {
             let number = element.textContent.trim();
             if (number && !isNaN(number)) {
                 element.textContent = formatCurrency(parseFloat(number));
@@ -296,9 +369,19 @@
         });
     }
 
-    // Populate the modal with data when editing a utility
     $(document).ready(function () {
-        $('#utilityModal').on('show.bs.modal', function (event) {
+        // Initialize DataTable with column search and length menu
+        var table = $('#entityTable').DataTable({
+            dom: 'Blfrtip',
+            buttons: [
+                'copy', 'csv', 'excel', 'pdf', 'print'
+            ],
+            lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],  // Define the length menu options
+        });
+
+
+        // Populate the modal with data when editing an entity
+        $('#entityModal').on('show.bs.modal', function (event) {
             var button = $(event.relatedTarget); // Button that triggered the modal
             var modal = $(this);
 
@@ -306,37 +389,298 @@
             var id = button.data('id') || '';  // If there's no ID, it's an add operation
 
             // Update the modal's title and form action
-            modal.find('.modal-title').text(id ? 'Edit Utility' : 'Add Utility');
+            modal.find('.modal-title').text(id ? 'Edit Entity' : 'Add Entity');
 
             // Populate fields if editing, otherwise clear fields
-            modal.find('#city').val(button.data('city') || '');
+            modal.find('#entity_name').val(button.data('entity') || '');
             modal.find('#state').val(button.data('state') || '');
-            modal.find('#client').val(button.data('client') || '');
             modal.find('#population').val(button.data('population') || '');
+            modal.find('#latitude').val(button.data('latitude') || '');
+            modal.find('#longitude').val(button.data('longitude') || '');
+            modal.find('#rate_type').val(button.data('type') || '');
+            modal.find('#rate_class').val(button.data('class') || '');
             modal.find('#winter_avg').val(button.data('winter_avg') || '');
             modal.find('#meter_size').val(button.data('meter_size') || '');
             modal.find('#effective_date').val(button.data('effective_date') || '');
             modal.find('#source').val(button.data('source') || '');
-            modal.find('#w_min_bill').val(button.data('w_min_bill') || '');
-            modal.find('#ww_min_bill').val(button.data('ww_min_bill') || '');
+            modal.find('#min_bill').val(button.data('min_bill') || '');
+            modal.find('#units').val(button.data('units') || '');
+            modal.find('#updated_by').val(button.data('updated_by') || '');
+            modal.find('#updated_on').val(button.data('updated_on') || '');
+            modal.find('#checked_by').val(button.data('checked_by') || '');
+            modal.find('#checked_on').val(button.data('checked_on') || '');
 
             // Populate blocks (clear if adding new)
             for (var i = 1; i <= 10; i++) {
-                modal.find('#water_gallons_' + i).val(button.data('water_gallons_' + i) || '');
-                modal.find('#water_rate_' + i).val(button.data('water_rate_' + i) || '');
-                modal.find('#wastewater_gallons_' + i).val(button.data('wastewater_gallons_' + i) || '');
-                modal.find('#wastewater_rate_' + i).val(button.data('wastewater_rate_' + i) || '');
+                modal.find('#volume_' + i).val(button.data('volume_' + i) || '');
+                modal.find('#block_rate_' + i).val(button.data('rate_' + i) || '');
             }
+
+            modal.find('#notes').val(button.data('notes') || '');
 
             // Set the correct form action URL based on whether we are adding or editing
             if (id) {
-                $('#utilityForm').attr('action', '/update_utility/' + id);
+                $('#entityForm').attr('action', '/update_entity/' + id);
             } else {
-                $('#utilityForm').attr('action', '/add_utility');
+                $('#entityForm').attr('action', '/add_entity');
             }
         });
     });
-
-
 </script>
-    {% endblock %}
+
+<script>
+    $(document).ready(function () {
+        // Initialize Select2 on the entity-select element
+        $('#entity-select').select2({
+            placeholder: "Select an Entity to Calculate Distance From",
+            allowClear: true
+        });
+    });
+</script>
+
+<script>
+    const conversionFactor = 1.33680555555564;
+
+    $(document).ready(function () {
+        // Listen for unit change
+        $('#unit-select').on('change', function () {
+            const selectedUnit = $(this).val();
+            updateUnits(selectedUnit);
+            updateUnitFields(selectedUnit);
+        });
+
+        // Store the original values (in kGal or CCF) on page load
+        storeOriginalValues();
+    });
+
+    // Update units based on the dropdown selection
+    function updateUnits(selectedUnit) {
+        $('td[data-field^="volume"], td[data-field^="rate"]').each(function () {
+            const element = $(this);
+            const currentUnit = element.data('unit');
+            let originalValue = parseFloat(element.data('original'));  // Original stored value
+
+            if (!isNaN(originalValue)) {
+                let convertedValue = originalValue;
+
+                // Perform conversion only for volume and rate fields
+                if (selectedUnit === 'ccf' && currentUnit === 'kGal') {
+                    convertedValue = (originalValue / conversionFactor).toFixed(2);
+                } else if (selectedUnit === 'kgal' && currentUnit === 'CCF') {
+                    convertedValue = (originalValue * conversionFactor).toFixed(2);
+                } else {
+                    convertedValue = originalValue.toFixed(2); // Keep it as the original if no conversion is needed
+                }
+
+                element.text(convertedValue);  // Update the displayed value
+            }
+        });
+
+        // Re-apply formatting after unit update
+        formatPopulationAndVolume();
+        formatRates();
+    }
+
+
+    // Store the original value in each relevant field
+    function storeOriginalValues() {
+        $('td[data-field^="volume"], td[data-field^="rate"], td[data-field="population"], td[data-field="min_bill"]').each(function () {
+            const element = $(this);
+            const originalValue = element.text().trim();
+            if (!element.data('original')) {
+                element.data('original', originalValue);  // Store the original value in 'data-original'
+            }
+        });
+    }
+
+
+    // Function to update the "Units" column based on the selected unit
+    function updateUnitFields(selectedUnit) {
+        $('td[data-field="units"]').each(function () {
+            const element = $(this);
+            const originalUnit = element.data('original'); // Store the original unit in the data attribute
+
+            // Determine how to display the selected unit
+            let displayUnit;
+            if (selectedUnit === 'default') {
+                displayUnit = originalUnit; // Show original unit from data-original
+            } else if (selectedUnit === 'ccf') {
+                displayUnit = 'CCF'; // Keep CCF uppercase
+            } else if (selectedUnit === 'kgal') {
+                displayUnit = 'kGal'; // Format kGal with proper casing
+            }
+
+            // Update the displayed unit
+            element.text(displayUnit);
+        });
+    }
+
+    // Existing functions to format population and volume
+    function formatPopulationAndVolume() {
+        // Format Population field
+        document.querySelectorAll('td[data-field="population"]').forEach(function (element) {
+            let number = element.textContent.trim();
+            if (number && !isNaN(number)) {
+                element.textContent = formatNumber(parseInt(number));
+            } else {
+                element.textContent = element.textContent.trim(); // Set to blank if empty or not a number
+            }
+        });
+
+        // Format all volume fields
+        document.querySelectorAll('td[data-field^="volume"]').forEach(function (element) {
+            let number = element.textContent.trim();
+            if (number && !isNaN(number)) {
+                element.textContent = formatNumber(parseInt(number));
+            } else {
+                element.textContent = ''; // Set to blank if empty or not a number
+            }
+        });
+    }
+
+    function formatRates() {
+        // Format all Rate fields and min_bill
+        document.querySelectorAll('td[data-field^="rate"], td[data-field="min_bill"], td[data-field="other_vol_rates"]').forEach(function (element) {
+            let number = element.textContent.trim();
+            if (number && !isNaN(number)) {
+                element.textContent = formatCurrency(parseFloat(number));
+            } else {
+                element.textContent = element.textContent.trim(); // Set to blank if empty or not a number
+            }
+        });
+    }
+
+
+    // Helper function to format numbers
+    function formatNumber(number) {
+        return new Intl.NumberFormat('en-US', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(number);
+    }
+
+    // Helper function to format currency
+    function formatCurrency(number) {
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD',
+            minimumFractionDigits: 2
+        }).format(number);
+    }
+</script>
+
+<script>
+    $(document).ready(function () {
+        // Initialize DataTable only if it is not already initialized
+        var table;
+        if (!$.fn.DataTable.isDataTable('#entityTable')) {
+            // Initialize DataTable and ensure callbacks are bound after initialization
+            table = $('#entityTable').DataTable({
+                dom: 'Blfrtip',
+                buttons: [
+                    'copy', 'csv', 'excel', 'pdf', 'print'
+                ],
+                lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                stateSave: true, // Save table state (pagination, search, etc.)
+                drawCallback: function () {
+                    // Ensure selected rates are re-checked after pagination
+                    $('.rate-checkbox').each(function () {
+                        const rateId = $(this).val();
+                        if (selectedRates.has(rateId)) {
+                            $(this).prop('checked', true);
+                        }
+                    });
+                }
+            });
+        } else {
+            table = $('#entityTable').DataTable();
+        }
+
+        // Store selected rate IDs across pages
+        let selectedRates = new Set();
+
+        // Handle checkbox selection across pages
+        $('#entityTable').on('change', '.rate-checkbox', function () {
+            const rateId = $(this).val();
+            if (this.checked) {
+                selectedRates.add(rateId);
+            } else {
+                selectedRates.delete(rateId);
+            }
+        });
+
+        // When the table is redrawn (pagination or filtering), recheck selected checkboxes
+        table.on('draw', function () {
+            $('.rate-checkbox').each(function () {
+                const rateId = $(this).val();
+                if (selectedRates.has(rateId)) {
+                    $(this).prop('checked', true);
+                }
+            });
+        });
+
+        // Export selected rates
+        $('#export-btn').on('click', function () {
+            if (selectedRates.size === 0) {
+                alert('Please select at least one rate to export.');
+                return;
+            }
+
+            // Convert the Set to an array and send it to the server
+            const rateArray = Array.from(selectedRates);
+
+            // Send the selected rate IDs to the server for export
+            fetch('/export_rates', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ rates: rateArray }),
+            })
+                .then(response => response.blob()) // Expect a blob response for the CSV file
+                .then(blob => {
+                    const link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = 'rates_export.csv';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                })
+                .catch(error => console.error('Error:', error));
+        });
+    });
+</script>
+
+<script>
+    $(document).ready(function () {
+        // Store original values for block volumes
+        let originalBlockVolumes = {};
+
+        // When the modal is shown, store the original block volumes
+        $('#entityModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget); // Button that triggered the modal
+            for (var i = 1; i <= 10; i++) {
+                const volumeField = $('#volume_' + i);
+                originalBlockVolumes[i] = volumeField.val();  // Store the original value
+            }
+        });
+
+        // Add event listener to block volume inputs
+        $('input[id^="volume_"]').on('change', function () {
+            const blockId = $(this).attr('id').split('_')[1];  // Get the block number (e.g., "volume_1" -> "1")
+            const originalValue = originalBlockVolumes[blockId];  // Get the original value of the block
+
+            // If the new value is different from the original value, show a confirmation dialog
+            if ($(this).val() !== originalValue) {
+                const confirmed = confirm('You are changing the volume for Block ' + blockId + '. Are you sure? It is uncommon for volumes to change.');
+                if (!confirmed) {
+                    $(this).val(originalValue);  // Revert to the original value if the user cancels
+                } else {
+                    originalBlockVolumes[blockId] = $(this).val();  // Update the stored value if confirmed
+                }
+            }
+        });
+    });
+</script>
+
+{% endblock %}

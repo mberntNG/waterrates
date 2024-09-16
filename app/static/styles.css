@@ -87,6 +87,11 @@ table.dataTable {
     border-color: #dc3545;
 }
 
+.add-entity-btn {
+    margin-top: 25px;
+}
+
+
 /* Adjust spacing in modal forms */
 .modal-body .form-group {
     margin-bottom: 20px; /* More space between form elements */
