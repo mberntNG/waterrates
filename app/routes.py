@@ -38,12 +38,6 @@ def home():
 
     return render_template('home.html', entities=all_entities, selected_entity=selected_entity, distances=distances, rates=rates)
 
-@main.route('/test')
-def test():
-    
-
-    return render_template('test.html')
-
 @main.route('/add_entity', methods=['POST'])
 
 def add_entity():
