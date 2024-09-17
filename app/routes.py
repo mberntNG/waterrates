@@ -38,6 +38,12 @@ def home():
 
     return render_template('home.html', entities=all_entities, selected_entity=selected_entity, distances=distances, rates=rates)
 
+@main.route('/test')
+def test():
+    
+
+    return render_template('test.html')
+
 @main.route('/add_entity', methods=['POST'])
 
 def add_entity():
@@ -319,7 +325,7 @@ def export_rates():
             rate.meter_size,      # Meter Size
             rate.effective_date,  # Effective Date
             rate.min_bill,        # Minimum Bill
-            rate.units            # Units (kGal or CCF)
+            rate.units            # Units (kgal or CCF)
         ]
         
         # Extract block volumes and rates (up to 10)
@@ -346,4 +352,47 @@ def export_rates():
     response.headers["Content-type"] = "text/csv"
     
     return response
+
+@main.route('/search_entity', methods=['GET'])
+def search_entity():
+    search_term = request.args.get('query', '').strip()
+
+    if not search_term:
+        return jsonify([])  # Return an empty list if no query is provided.
+
+    # Find entities whose name matches the search term (case-insensitive)
+    matching_entities = Entity.query.filter(Entity.entity_name.ilike(f"%{search_term}%")).all()
+
+    # Return a list of matching entities with their relevant fields
+    results = []
+    for entity in matching_entities:
+        results.append({
+            'id': entity.id,
+            'entity_name': entity.entity_name,
+            'state': entity.state,
+            'entity_type': entity.entity_type,
+            'population': entity.population,
+            'latitude': entity.latitude,
+            'longitude': entity.longitude
+        })
+
+    return jsonify(results)
+
+
+
+@main.route('/get_entity_details/<int:entity_id>', methods=['GET'])
+def get_entity_details(entity_id):
+    entity = Entity.query.get(entity_id)
+
+    if entity:
+        return jsonify({
+            'entity_name': entity.entity_name,
+            'state': entity.state,
+            'entity_type': entity.entity_type,
+            'population': entity.population,
+            'latitude': entity.latitude,
+            'longitude': entity.longitude
+        })
+    else:
+        return jsonify({'error': 'Entity not found'}), 404
 

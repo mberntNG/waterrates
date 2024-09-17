@@ -19,14 +19,14 @@
             <label for="unit-select">Show units in:</label>
             <select name="unit_select" id="unit-select" class="form-control">
                 <option value="default">Default Unit</option>
-                <option value="kgal">kGal</option>
+                <option value="kgal">kgal</option>
                 <option value="ccf">CCF</option>
             </select>
         </div>
         <!-- Entity Selection Dropdown -->
         <div class="col-md-4">
             <form method="get" action="{{ url_for('main.home') }}">
-                <label for="selected_entity">Show distance from:</label>
+                <label for="entity-select">Show distance from:</label>
                 <select name="selected_entity" id="entity-select" class="form-control" onchange="this.form.submit()">
                     <option value="">Select an Entity</option>
                     {% for entity in entities %}
@@ -169,8 +169,13 @@
                     <!-- First row with Entity, State, Entity Type, Population -->
                     <div class="row">
                         <div class="col-md-4 form-group">
-                            <label for="entity">Entity</label>
-                            <input type="text" class="form-control" id="entity_name" name="entity_name" required>
+                            <label for="entity_name">Entity</label>
+                            <input type="text" class="form-control" id="entity_name" name="entity_name" required autocomplete="off">
+                            <!-- Dropdown for entity name suggestions -->
+                            <select id="entityNameDropdown" class="form-control" style="display: none;" title="If available, select entity from list. Otherwise add a new one manually.">
+                                <option disabled selected>List of Available Entities</option> <!-- Label option -->
+                                <!-- Options will be dynamically added here -->
+                            </select>
                         </div>
                         <div class="col-md-2 form-group">
                             <label for="state">State</label>
@@ -209,13 +214,17 @@
                             <input type="text" class="form-control" id="rate_class" name="rate_class" required>
                         </div>
                         <div class="col-md-3 form-group">
-                            <label for="meter_size">Meter Size</label>
-                            <input type="text" class="form-control" id="meter_size" name="meter_size">
+                            <label for="meter_size">Meter Size:</label>
+                            <input type="text" id="meter_size" name="meter_size" class="form-control" autocomplete="off">
+                            <ul id="suggestions" class="suggestions-list" style="display: none;">
+                                <!-- Suggestions will be added here -->
+                            </ul>
+
                         </div>
                         <div class="col-md-2 form-group">
                             <label for="units">Units</label>
                             <select class="form-control" id="units" name="units">
-                                <option value="kGal">kGal</option>
+                                <option value="kgal">kgal</option>
                                 <option value="CCF">CCF</option>
                             </select>
                         </div>
@@ -457,7 +466,7 @@
             updateUnitFields(selectedUnit);
         });
 
-        // Store the original values (in kGal or CCF) on page load
+        // Store the original values (in kgal or CCF) on page load
         storeOriginalValues();
     });
 
@@ -472,7 +481,7 @@
                 let convertedValue = originalValue;
 
                 // Perform conversion only for volume and rate fields
-                if (selectedUnit === 'ccf' && currentUnit === 'kGal') {
+                if (selectedUnit === 'ccf' && currentUnit === 'kgal') {
                     convertedValue = (originalValue / conversionFactor).toFixed(2);
                 } else if (selectedUnit === 'kgal' && currentUnit === 'CCF') {
                     convertedValue = (originalValue * conversionFactor).toFixed(2);
@@ -515,7 +524,7 @@
             } else if (selectedUnit === 'ccf') {
                 displayUnit = 'CCF'; // Keep CCF uppercase
             } else if (selectedUnit === 'kgal') {
-                displayUnit = 'kGal'; // Format kGal with proper casing
+                displayUnit = 'kgal'; // Format kgal with proper casing
             }
 
             // Update the displayed unit
@@ -660,6 +669,98 @@
 </script>
 <script>
     $(document).ready(function () {
+        // Function to search entities as the user types in the entity name field
+        $('#entity_name').on('keyup', function () {
+            let query = $(this).val().trim();
+
+            if (query.length >= 2) { // Start searching after 2 characters
+                $.ajax({
+                    url: '/search_entity',
+                    type: 'GET',
+                    data: { query: query },
+                    success: function (data) {
+                        let dropdown = $('#entityNameDropdown');
+                        dropdown.empty(); // Clear any previous options
+
+                        // Add the label as the first non-selectable option
+                        dropdown.append('<option disabled selected>List of Current Entities</option>');
+
+                        // Populate dropdown with the search results
+                        if (data.length > 0) {
+                            dropdown.show(); // Show the dropdown if there are results
+                            data.forEach(entity => {
+                                dropdown.append(`<option value="${entity.id}">${entity.entity_name}</option>`);
+                            });
+
+                            // Use mousedown to handle selection (even for first item)
+                            dropdown.off('mousedown').on('mousedown', 'option', function () {
+                                let entityId = $(this).val(); // Get the selected entity ID
+                                let entityText = $(this).text(); // Get the entity name
+
+                                if (entityId) {
+                                    $.ajax({
+                                        url: '/get_entity_details/' + entityId,
+                                        type: 'GET',
+                                        success: function (data) {
+                                            // Populate the form fields with the selected entity's data
+                                            $('#entity_name').val(data.entity_name);
+                                            $('#state').val(data.state);
+                                            $('#entity_type').val(data.entity_type);
+                                            $('#population').val(data.population);
+                                            $('#latitude').val(data.latitude);
+                                            $('#longitude').val(data.longitude);
+                                            // Hide the dropdown after selection
+                                            dropdown.hide();
+                                        },
+                                        error: function (xhr, status, error) {
+                                            console.log('Error fetching entity details:', error);
+                                        }
+                                    });
+                                }
+                            });
+                        } else {
+                            dropdown.hide(); // Hide the dropdown if no results are found
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.log('Error fetching entities:', error);
+                    }
+                });
+            } else {
+                $('#entityNameDropdown').hide(); // Hide the dropdown if less than 2 characters are typed
+            }
+        });
+
+    // Handle when the user selects an entity from the dropdown
+    $('#entityNameDropdown').on('change', function () {
+        let entityId = $(this).val(); // Get the selected entity ID
+
+        if (entityId) {
+            $.ajax({
+                url: '/get_entity_details/' + entityId,
+                type: 'GET',
+                success: function (data) {
+                    // Populate the form fields with the selected entity's data
+                    $('#entity_name').val(data.entity_name);
+                    $('#entity_type').val(data.entity_type);
+                    $('#state').val(data.state);
+                    $('#population').val(data.population);
+                    $('#latitude').val(data.latitude);
+                    $('#longitude').val(data.longitude);
+                },
+                error: function (xhr, status, error) {
+                    console.log('Error fetching entity details:', error);
+                }
+            });
+        }
+    });
+});
+
+</script>
+<script>
+
+
+    $(document).ready(function () {
         // Store original values for block volumes
         let originalBlockVolumes = {};
         let isEditing = false;  // Flag to check if the modal is opened for editing
@@ -705,6 +806,58 @@
             }
         });
     });
+</script>
+<script>
+
+    $(document).ready(function () {
+        const options = ["5/8\"", "5/8\" & 3/4\"", "1\"", "1 1/2\"", "2\"", "3\"", "4\"", "5\"", "6\"", "8\""];
+        const inputField = $('#meter_size');
+        const suggestions = $('#suggestions');
+
+        // Function to display suggestions
+        function showSuggestions(filteredOptions) {
+            suggestions.empty();
+            if (filteredOptions.length > 0) {
+                filteredOptions.forEach(option => {
+                    suggestions.append('<li class="suggestion-item">' + option + '</li>');
+                });
+                suggestions.show();
+            } else {
+                suggestions.hide();
+            }
+        }
+
+        // Event listener for input field focus
+        inputField.on('focus', function () {
+            const query = $(this).val().toLowerCase();
+            if (query.length === 0) {
+                // Show all options when input is empty
+                showSuggestions(options);
+            }
+        });
+
+        // Event listener for input changes
+        inputField.on('input', function () {
+            const query = $(this).val().toLowerCase();
+            const matches = options.filter(option => option.toLowerCase().includes(query));
+            showSuggestions(matches);
+        });
+
+        // Event listener for suggestion click
+        $(document).on('click', '.suggestion-item', function () {
+            inputField.val($(this).text());
+            suggestions.hide();
+        });
+
+        // Hide suggestions when clicking outside
+        $(document).on('click', function (event) {
+            if (!$(event.target).closest('#meter_size, #suggestions').length) {
+                suggestions.hide();
+            }
+        });
+    });
+
+
 </script>
 
 {% endblock %}

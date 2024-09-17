@@ -10,6 +10,10 @@ body {
     margin-top: 20px;
 }
 
+#entityNameDropdown option {
+    selected: false; /* Ensure no option is preselected */
+}
+
 /* Styling the DataTable */
 table.dataTable {
     width: 100%;
@@ -140,3 +144,26 @@ table.dataTable tbody tr {
         font-size: 0.8rem;
     }
 }
+/* Meter Size Drop-down */
+.suggestions-list {
+    position: absolute;
+    border: 1px solid #ccc;
+    max-height: 150px;
+    overflow-y: auto;
+    background-color: #fff;
+    width: calc(100% - 2px); /* Adjust width to match input field */
+    list-style-type: none;
+    padding-left: 0;
+    margin-top: 0;
+    z-index: 1000; /* Ensure the suggestions list appears above other elements */
+}
+
+    .suggestions-list li {
+        padding: 8px;
+        cursor: pointer;
+    }
+
+        .suggestions-list li:hover {
+            background-color: #f0f0f0;
+        }
+

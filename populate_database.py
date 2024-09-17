@@ -40,7 +40,7 @@ def populate_rates_and_blocks():
                 min_bill=float(row['min_bill']) if row['min_bill'] else None,
                 rate_class=row['rate_class'],
                 rate_type=row['rate_type'],
-                units='kGal',
+                units='kgal',
                 other_vol_rates=float(row['other_vol_rates']) if row['other_vol_rates'] else None,
                 updated_on=datetime.strptime(row['updated_on'], '%Y-%m-%d').date() if row['updated_on'] else None,
                 updated_by=row['updated_by'],
