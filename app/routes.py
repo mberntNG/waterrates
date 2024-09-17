@@ -292,7 +292,7 @@ def export_rates():
     
     # Write headers
     writer.writerow([
-        'Entity', 'State', 'Population', 'Rate Type', 'Rate Class', 'Meter Size', 
+        'Entity', 'State', 'Type', 'Population', 'Rate Type', 'Rate Class', 'Meter Size', 
         'Effective Date', 'Min Bill', 'Units', 'Block 1 Volume', 'Block 2 Volume', 
         'Block 3 Volume', 'Block 4 Volume', 'Block 5 Volume', 'Block 6 Volume', 
         'Block 7 Volume', 'Block 8 Volume', 'Block 9 Volume', 'Block 10 Volume', 
@@ -308,6 +308,7 @@ def export_rates():
         entity_data = [
             entity.entity_name,  # Entity name
             entity.state,        # State
+            entity.entity_type,  #Type, e.g. City, District
             entity.population    # Population
         ]
         

@@ -48,6 +48,7 @@
                     <th>Actions</th>
                     <th>Entity</th>
                     <th>State</th>
+                    <th>Type</th>
                     <th>Population</th>
                     <th>Distance from Selected (mi)</th>
                     <th>Rate Type</th>
@@ -82,6 +83,7 @@
                                     data-id="{{ rate.id }}"
                                     data-entity="{{ rate.entity.entity_name }}"
                                     data-state="{{ rate.entity.state }}"
+                                    data-entity_type="{{ rate.entity.entity_type }}"
                                     data-population="{{ rate.entity.population }}"
                                     data-latitude="{{ rate.entity.latitude }}"
                                     data-longitude="{{ rate.entity.longitude }}"
@@ -118,6 +120,7 @@
                     </td>
                     <td>{{ rate.entity.entity_name }}</td>
                     <td>{{ rate.entity.state }}</td>
+                    <td>{{ rate.entity.entity_type }}</td>
                     <td data-field="population">{{ rate.entity.population or '' }}</td>
                     <td>{{ distances.get(rate.entity.id, 'N/A') }}</td>
                     <td>{{ rate.rate_type }}</td>
@@ -163,15 +166,19 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <!-- First row with Entity, State, Population -->
+                    <!-- First row with Entity, State, Entity Type, Population -->
                     <div class="row">
                         <div class="col-md-4 form-group">
                             <label for="entity">Entity</label>
                             <input type="text" class="form-control" id="entity_name" name="entity_name" required>
                         </div>
-                        <div class="col-md-4 form-group">
+                        <div class="col-md-2 form-group">
                             <label for="state">State</label>
                             <input type="text" class="form-control" id="state" name="state" required>
+                        </div>
+                        <div class="col-md-2 form-group">
+                            <label for="entity_type">Type</label>
+                            <input type="text" class="form-control" id="entity_type" name="entity_type" required>
                         </div>
                         <div class="col-md-4 form-group">
                             <label for="population">Population</label>
@@ -394,6 +401,7 @@
             // Populate fields if editing, otherwise clear fields
             modal.find('#entity_name').val(button.data('entity') || '');
             modal.find('#state').val(button.data('state') || '');
+            modal.find('#entity_type').val(button.data('entity_type') || '');
             modal.find('#population').val(button.data('population') || '');
             modal.find('#latitude').val(button.data('latitude') || '');
             modal.find('#longitude').val(button.data('longitude') || '');
@@ -650,15 +658,26 @@
         });
     });
 </script>
-
 <script>
     $(document).ready(function () {
         // Store original values for block volumes
         let originalBlockVolumes = {};
+        let isEditing = false;  // Flag to check if the modal is opened for editing
 
-        // When the modal is shown, store the original block volumes
+        // When the modal is shown, set the flag and store original block volumes
         $('#entityModal').on('show.bs.modal', function (event) {
             var button = $(event.relatedTarget); // Button that triggered the modal
+            const entityId = button.data('id'); // Check if the entity ID is set
+
+            if (entityId) {
+                // If entity ID is present, it's an edit operation
+                isEditing = true;
+            } else {
+                // Otherwise, it's an add operation
+                isEditing = false;
+            }
+
+            // Store the original block volumes (only relevant for editing)
             for (var i = 1; i <= 10; i++) {
                 const volumeField = $('#volume_' + i);
                 originalBlockVolumes[i] = volumeField.val();  // Store the original value
@@ -667,6 +686,11 @@
 
         // Add event listener to block volume inputs
         $('input[id^="volume_"]').on('change', function () {
+            if (!isEditing) {
+                // Don't show the warning if we're adding a new entity
+                return;
+            }
+
             const blockId = $(this).attr('id').split('_')[1];  // Get the block number (e.g., "volume_1" -> "1")
             const originalValue = originalBlockVolumes[blockId];  // Get the original value of the block
 
