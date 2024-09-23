@@ -37,10 +37,14 @@
                 </select>
             </form>
         </div>
+
     </div>
 
     <!-- DataTables Table -->
     <div class="table-responsive">
+        <small class="export-notice">
+            Buttons below export full table. To export in template format use "Export Selected Rates" button above.
+        </small>
         <table id="entityTable" class="table table-bordered table-striped">
             <thead>
                 <tr>
@@ -140,7 +144,7 @@
                         {{ rate.blocks[i-1].block_rate if i <= rate.blocks|length else '' }}
                     </td>
                     {% endfor %}
-                    <td data-field="other_vol_rates">{{ rate.other_vol_rates or 'N/A' }}</td>
+                    <td data-field="other_vol_rates">{{ rate.other_vol_rates or 0 }}</td>
                     <td><a href="{{ rate.source }}" target="_blank">{{ rate.source }}</a></td>
                     <td>{{ rate.updated_by }}</td>
                     <td>{{ rate.updated_on }}</td>
@@ -482,9 +486,9 @@
 
                 // Perform conversion only for volume and rate fields
                 if (selectedUnit === 'ccf' && currentUnit === 'kgal') {
-                    convertedValue = (originalValue / conversionFactor).toFixed(2);
-                } else if (selectedUnit === 'kgal' && currentUnit === 'CCF') {
                     convertedValue = (originalValue * conversionFactor).toFixed(2);
+                } else if (selectedUnit === 'kgal' && currentUnit === 'CCF') {
+                    convertedValue = (originalValue / conversionFactor).toFixed(2);
                 } else {
                     convertedValue = originalValue.toFixed(2); // Keep it as the original if no conversion is needed
                 }

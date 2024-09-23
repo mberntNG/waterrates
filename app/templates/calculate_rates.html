@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Rate Calculation
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Input Form for Volume and Units -->
+    <form method="POST" id="rateForm">
+        <div class="row my-3">
+            <div class="col-md-4">
+                <label for="volume">Volume (default: 2,000):</label>
+                <input type="number" class="form-control" id="volume" name="volume" value="{{ request.form.volume or 2000 }}" step="0.01" min="0">
+            </div>
+            <div class="col-md-2">
+                <label for="unit">Units:</label>
+                <select id="unit" name="unit" class="form-control">
+                    <option value="kgal" {% if request.form.unit=='kgal' %}selected{% endif %}>kgal</option>
+                    <option value="CCF" {% if request.form.unit=='CCF' %}selected{% endif %}>CCF</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="rate_type">Calculate for:</label>
+                <select id="rate_type" name="rate_type" class="form-control">
+                    <option value="both" {% if request.form.rate_type=='both' %}selected{% endif %}>Water and Wastewater</option>
+                    <option value="water" {% if request.form.rate_type=='water' %}selected{% endif %}>Water Only</option>
+                    <option value="wastewater" {% if request.form.rate_type=='wastewater' %}selected{% endif %}>Wastewater Only</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="row my-3">
+            <div class="col-md-4">
+                <label for="winter_avg">Volume for Winter Average (default: 7,000):</label>
+                <input type="number" class="form-control" id="winter_avg" name="winter_avg" value="{{ request.form.winter_avg or 7000 }}" step="0.01" min="0">
+            </div>
+            <div class="col-md-2 mt-4">
+                <button type="submit" class="btn btn-primary">Calculate</button>
+            </div>
+        </div>
+    </form>
+
+    <!-- Bar Graph for Water/Wastewater Bill -->
+    <div class="row my-3">
+        <div class="col-md-12">
+            <canvas id="billChart" height="700"></canvas>
+        </div>
+    </div>
+
+    <!-- Results Table -->
+    <div class="table-responsive my-4">
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>Select</th>
+                    <th>Entity Name</th>
+                    <th>Rate Class</th>
+                    <th>Population</th>
+                    <th>Distance (mi)</th>
+                    <th>Meter Size</th>
+                    <th>Monthly Water Bill</th>
+                    <th>Monthly Wastewater Bill</th>
+                    <th>Total Bill</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for result in results %}
+                <tr>
+                    <td><input type="checkbox" class="select-entity" data-entity="{{ result.entity }}" checked></td>
+                    <td>{{ result.entity }}</td>
+                    <td>{{ result.rate_class }}</td>
+                    <td>{{ result.population }}</td>
+                    <td>{{ result.distance }}</td>
+                    <td>{{ result.meter_size }}</td>
+                    <td>${{ result.water_bill | round(2) }}</td>
+                    <td>${{ result.wastewater_bill | round(2) }}</td>
+                    <td>${{ result.total_bill | round(2) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Collect the data for the chart
+    const results = {{ results | tojson | safe }} || [];
+    let entityNames = [];
+    let waterBills = [];
+    let wastewaterBills = [];
+
+    results.forEach(result => {
+        entityNames.push(result.entity);
+        waterBills.push(result.water_bill);
+        wastewaterBills.push(result.wastewater_bill);
+    });
+
+    // Create the stacked bar chart
+    // Create the stacked bar chart
+    const ctx = document.getElementById('billChart').getContext('2d');
+    const billChart = new Chart(ctx, {
+        type: 'bar',  // Use 'bar' instead of 'horizontalBar'
+        data: {
+            labels: entityNames,
+            datasets: [
+                {
+                    label: 'Water Bill',
+                    backgroundColor: 'blue',
+                    data: waterBills
+                },
+                {
+                    label: 'Wastewater Bill',
+                    backgroundColor: 'green',
+                    data: wastewaterBills
+                }
+            ]
+        },
+        options: {
+            indexAxis: 'y',  // This makes the bar chart horizontal
+            scales: {
+                x: {
+                    stacked: true,
+                    beginAtZero: true
+                },
+                y: {
+                    stacked: true
+                }
+            },
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+
+
+    // Filter chart when checkboxes are toggled
+    document.querySelectorAll('.select-entity').forEach(function (checkbox) {
+        checkbox.addEventListener('change', function () {
+            const entity = this.getAttribute('data-entity');
+            const entityIndex = entityNames.indexOf(entity);
+
+            if (this.checked) {
+                // Add entity back to the chart
+                entityNames[entityIndex] = results[entityIndex].entity;
+                waterBills[entityIndex] = results[entityIndex].water_bill;
+                wastewaterBills[entityIndex] = results[entityIndex].wastewater_bill;
+            } else {
+                // Remove entity from the chart
+                entityNames.splice(entityIndex, 1);
+                waterBills.splice(entityIndex, 1);
+                wastewaterBills.splice(entityIndex, 1);
+            }
+
+            billChart.update();
+        });
+    });
+
+</script>
+{% endblock %}

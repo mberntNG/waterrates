@@ -75,9 +75,9 @@ def add_entity():
         meter_size=request.form.get('meter_size'),
         effective_date=datetime.strptime(request.form.get('effective_date'), '%Y-%m-%d').date() if request.form.get('effective_date') else None,
         source=request.form.get('source'),
-        min_bill=request.form.get('min_bill'),
+        min_bill=request.form.get('min_bill') if request.form.get('min_bill') else 0,
         units=request.form.get('units'),
-        other_vol_rates=request.form.get('other_vol_rates'),
+        other_vol_rates=request.form.get('other_vol_rates') if request.form.get('other_vol_rates') else 0,
         updated_by=request.form.get('updated_by'),
         updated_on=datetime.strptime(request.form.get('updated_on'), '%Y-%m-%d').date() if request.form.get('updated_on') else None,
         checked_by=request.form.get('checked_by'),
@@ -189,91 +189,86 @@ def delete_rate(id):
     return redirect(url_for('main.home'))
 
 
-@main.route('/utility_graph', methods=['GET', 'POST'])
-def utility_graph():
-    usage_amount = int(request.form.get('usage_amount', 2500))  # Default usage amount
-    selected_rates = request.form.getlist('selected_utilities')   
-    if not selected_rates:
-        selected_rates = [str(rate.id) for rate in Rate.query.all()]
-    reference_entity_name = request.form.get('reference_entity')
-    if reference_entity_name:
-        reference_entity = Entity.query.filter_by(entity_name=reference_entity_name).first()
-    else:
-        reference_entity = None
+@main.route('/calculate_rates', methods=['GET', 'POST'])
+def calculate_rates():
+    # Fetch all entities along with their related rates and blocks
+    entities = Entity.query.options(
+        db.joinedload(Entity.rates).joinedload(Rate.blocks)
+    ).all()
 
-    rates = Rate.query.filter_by(rate_class="Residential").all()
+    # Check for POST to calculate rates or display page initially
+    if request.method == 'POST':
+        volume = float(request.form.get('volume', 2000))  # default to 2000
+        unit = request.form.get('unit', 'kgal')  # default to kgal
+        winter_avg_volume = float(request.form.get('winter_avg', 7000))  # default to 7000
+        rate_type = request.form.get('rate_type', 'both')  # water/wastewater/both
+        
+        # Perform calculations 
+        results = calculate_rate_for_entities(entities, volume, unit, winter_avg_volume, rate_type)
+        
+        # Pass the calculated results to the template
+        for result in results:
+            result.water_bill = result.water_bill or 0.0
+            result.wastewater_bill = result.wastewater_bill or 0.0
+            result.total_bill = result.total_bill or 0.0
+
+        return render_template('calculate_rates.html', entities=entities, results=results)
+    
+    return render_template('calculate_rates.html', entities=entities)
+
+def calculate_rate_for_entities(entities, volume, unit, winter_avg_volume, rate_type):
+    results = {}
+
+    for entity in entities:
+        for rate in entity.rates:
+            # Group by entity_name, rate_class, and meter_size
+            key = (entity.entity_name, rate.rate_class, rate.meter_size)
+            if key not in results:
+                results[key] = {
+                    'entity': entity.entity_name or "N/A",
+                    'rate_class': rate.rate_class or "N/A",
+                    'meter_size': rate.meter_size or "N/A",
+                    'population': entity.population or 0,
+                    'water_bill': 0.0,
+                    'wastewater_bill': 0.0,
+                    'total_bill': 0.0,
+                    'distance': 0,
+                }
+
+            # Determine if winter average applies (for wastewater)
+            max_volume = volume
+            if rate.winter_avg == 'Yes' and rate.rate_type == 'Wastewater':
+                max_volume = min(volume, winter_avg_volume)
+
+            # Calculate the bill
+            total_volume = max_volume/1000 if rate.rate_type == 'Wastewater' else volume/1000
+            block_total = 0
+            remaining_volume = total_volume
+
+            # Calculate block rates
+            for block in rate.blocks:
+                block_volume = min(block.volume or 0, remaining_volume)
+                block_total += block_volume * (block.block_rate or 0)
+                remaining_volume -= block_volume
+                if remaining_volume <= 0:
+                    break
+
+            # Add minimum bill and other volumetric rates (with None handling)
+            total_bill = (rate.min_bill or 0) + block_total + ((rate.other_vol_rates or 0) * total_volume)
+
+            if rate.rate_type == 'Water':
+                results[key]['water_bill'] = total_bill
+            elif rate.rate_type == 'Wastewater':
+                results[key]['wastewater_bill'] = total_bill
+
+            results[key]['total_bill'] = results[key]['water_bill'] + results[key]['wastewater_bill']
+            
+
+    return list(results.values())
 
 
-    table_data = []
-    entity_names = []
-    water_costs = []
-    wastewater_costs = []
-    total_costs = []
-    distances = []
 
 
-    for rate in rates:
-        # Calculate water cost
-        entity_name = rate.entity.entity_name
-        state=rate.entity.state
-        population=rate.entity.population
-        total_cost = 0
-        remaining_usage = usage_amount
-        calculated_distance = 0
-
-        for block in rate.blocks:
-            if remaining_usage > 0:
-                block_usage = min(remaining_usage, block.volume)
-                total_cost += block_usage / 1000 * block.rate
-                remaining_usage -= block_usage
-            else:
-                break
-
-        # Apply minimum water bill and other volumetric rate
-        total_cost = total_cost + rate.min_bill + rate.other_vol_rates * usage_amount
-
-       
-        # Total cost
-        total_cost = total_cost
-
-        # Store data for the table
-        table_data.append({
-            'name': entity_name,
-            'state':state,
-            'population':population,
-            'water_cost': total_cost,
-            'wastewater_cost': total_cost,
-            'total_cost': total_cost,
-            'id': rate.id,
-            'distance': 0
-        })
-
-        # Only include selected utilities in the graph
-        if str(rate.id) in selected_rates:
-            entity_names.append(entity_name)
-            water_costs.append(total_cost)
-            wastewater_costs.append(total_cost)
-            total_costs.append(total_cost)
-            distances.append(calculated_distance) 
-
-    # Create the stacked bar chart using Plotly
-    fig = go.Figure(data=[
-        go.Bar(name='Water', x=entity_names, y=water_costs, marker_color='blue'),
-        go.Bar(name='Wastewater', x=entity_names, y=wastewater_costs, marker_color='green')
-    ])
-
-    fig.update_layout(
-        title=f'Total Water and Wastewater Costs by Utility for {usage_amount} Gallons',
-        xaxis_title='Utility',
-        yaxis_title='Total Cost (USD)',
-        barmode='stack'
-    )
-
-    # Generate the HTML for the plot
-    graph_html = pio.to_html(fig, full_html=False)
-
-    # Pass the graph HTML, table data, selected utilities, and usage amount to the template
-    return render_template('utility_graph.html', graph_html=Markup(graph_html), usage_amount=usage_amount, table_data=table_data, selected_rates=selected_rates)
 
 @main.route('/export_rates', methods=['POST'])
 def export_rates():
